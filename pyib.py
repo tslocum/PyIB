@@ -25,7 +25,7 @@ def pyib(environ, start_response):
         board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '" + _mysql.escape_string(formdata['board']) + "' LIMIT 1")
         if not board:
           raise Exception
-        Settings._BOARD = board
+        board = setBoard(formdata['board'])
       else:
         raise Exception
     except:
@@ -53,7 +53,7 @@ def pyib(environ, start_response):
       'thumb_catalog_height': 0,
       'ip': '',
     }
-
+    
     try:
       parent = cgi.escape(formdata['parent']).strip()
       try:
@@ -68,7 +68,7 @@ def pyib(environ, start_response):
       pass
     
     try:
-      if not Settings.FORCED_ANONYMOUS:
+      if not board['settings']['forced_anonymous']:
         post['name'] = cgi.escape(formdata['name']).strip()
     except:
       pass
@@ -86,7 +86,7 @@ def pyib(environ, start_response):
       pass
     
     try:
-      if not Settings.DISABLE_SUBJECT:
+      if not board['settings']['disable_subject'] and not post['parent']:
         post['subject'] = cgi.escape(formdata['subject']).strip()
     except:
       pass
@@ -148,18 +148,25 @@ def pyib(environ, start_response):
   else:
     path_split = environ['PATH_INFO'].split('/')
     
-    if path_split[1] == 'admin':
-      board = FetchOne("SELECT * FROM `boards` WHERE `dir` = 'b' LIMIT 1")
-      Settings._BOARD = board
-      deletePost(4211)
+    if path_split[1] == 'updateboard':
+      board = setBoard('b')
+      #board['settings']['forced_anonymous'] = True
+      #board['settings']['anonymous'] = ''
+      #board['settings']['disable_subject'] = True
+      #updateBoardSettings()
       output += 'f'
     elif path_split[1] == 'rebuild':
-      board = FetchOne("SELECT * FROM `boards` WHERE `dir` = 'b' LIMIT 1")
-      Settings._BOARD = board
-      op_posts = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'])
+      board = setBoard('b')
+      
+      posts = FetchAll('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'])
+      for post in posts:
+        db.query("UPDATE `posts` SET `nameblock` = '" + _mysql.escape_string(nameBlock(post['name'], post['tripcode'], post['email'], post['timestamp_formatted'])) + "' WHERE `boardid` = " + board['id'] + " AND `id` = " + post['id'] + " LIMIT 1")
+      
+      op_posts = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = 0')
       for op_post in op_posts:
         regenerateThreadPage(op_post['id'])
       regenerateFrontPages()
+      
       output += 'Done.'
     else:
       # Redirect the user back to the front page

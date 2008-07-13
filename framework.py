@@ -1,6 +1,32 @@
 import cgi
 import datetime
 import time
+import pickle
+import _mysql
+
+from settings import Settings
+from database import *
+
+def setBoard(dir):
+  board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '" + _mysql.escape_string(dir) + "' LIMIT 1")
+  board['settings'] = {
+    'anonymous': 'Anonymous',
+    'forced_anonymous': False,
+    'disable_subject': False,
+    'tripcode_character': '!',
+  }
+  if board['configuration'] != '':
+    configuration = pickle.loads(board['configuration'])
+    board['settings'].update(configuration)
+    
+  Settings._BOARD = board
+  return board
+  
+def updateBoardSettings():
+  board = Settings._BOARD
+  configuration = pickle.dumps(board['settings'])
+  
+  db.query("UPDATE `boards` SET `configuration` = '" + _mysql.escape_string(configuration) + "' WHERE `id` = " + board['id'] + " LIMIT 1")
 
 def timestamp(t=None):
   """

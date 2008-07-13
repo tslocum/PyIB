@@ -8,12 +8,15 @@ def tripcode(pw):
   Calculate tripcode to match output of most imageboards
   """
   from crypt import crypt
-  pw = pw.encode('sjis', 'ignore')	\
-    .replace('"', '&quot;')		\
-    .replace("'", '\'')		\
-    .replace('<', '&lt;')		\
-    .replace('>', '&gt;')		\
-    .replace(',', ',')
+  try:
+    pw = pw.encode('sjis', 'ignore')
+  except:
+    pass
+  pw = pw.replace('"', '&quot;') \
+         .replace("'", '\'')     \
+         .replace('<', '&lt;')   \
+         .replace('>', '&gt;')   \
+         .replace(',', ',')
   salt = re.sub(r'[^\.-z]', '.', (pw + 'H..')[1:3])
   salt = salt.translate(string.maketrans(r':;=?@[\]^_`', 'ABDFGabcdef'))
     
@@ -25,6 +28,7 @@ def nameBlock(post_name, post_tripcode, post_email, post_timestamp_formatted):
   a bit of time when templating pages, as it saves the engine a few conditions
   per post, which adds up over the time of processing entire pages
   """
+  board = Settings._BOARD
   nameblock = ''
   
   if post_name == '' and post_tripcode == '':
@@ -32,7 +36,7 @@ def nameBlock(post_name, post_tripcode, post_email, post_timestamp_formatted):
   else:
     post_anonymous = False
   
-  if Settings.ANONYMOUS == '' and (post_anonymous or Settings.FORCED_ANONYMOUS):
+  if board['settings']['anonymous'] == '' and (post_anonymous or board['settings']['forced_anonymous']):
     if post_email:
       nameblock += '<a href="mailto:' + post_email + '">'
     nameblock += post_timestamp_formatted
@@ -42,10 +46,9 @@ def nameBlock(post_name, post_tripcode, post_email, post_timestamp_formatted):
     if post_anonymous:
       nameblock += '<span class="postername">'
       if post_email:
-        nameblock += '<a href="mailto:' + post_email + '">' + Settings.ANONYMOUS + '</a>'
+        nameblock += '<a href="mailto:' + post_email + '">' + board['settings']['anonymous'] + '</a>'
       else:
-        nameblock += Settings.ANONYMOUS
-      nameblock += '</span>'
+        nameblock += board['settings']['anonymous']
     else:
       nameblock += '<span class="postername">'
       if post_email:
@@ -54,13 +57,12 @@ def nameBlock(post_name, post_tripcode, post_email, post_timestamp_formatted):
         nameblock += post_name
       else:
         if not post_tripcode:
-          nameblock += Settings.ANONYMOUS
+          nameblock += board['settings']['anonymous']
       if post_tripcode:
-        nameblock += '</span><span class="postertrip">' + Settings.POST_TRIPCODE_CHARACTER + post_tripcode
+        nameblock += '</span><span class="postertrip">' + board['settings']['tripcode_character'] + post_tripcode
       if post_email:
         nameblock += '</a>'
-      nameblock += '</span>'
-    nameblock += post_timestamp_formatted
+    nameblock += '</span> ' + post_timestamp_formatted
     
   return nameblock
 

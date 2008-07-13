@@ -18,7 +18,7 @@
               Name
             </td>
             <td>
-              <input type="text" name="name" size="19" maxlength="75" accesskey="n">
+              <input type="text" name="name" size="28" maxlength="75" accesskey="n">
             </td>
           </tr>
 <?py #endif ?>
@@ -26,18 +26,14 @@
             <td class="postblock">
               Email
             </td>
-            <td>      
-<?py if forced_anonymous and disable_subject: ?>
+            <td>
               <input type="text" name="email" size="28" maxlength="75" accesskey="e">
-<?py else: ?>
-              <input type="text" name="email" size="19" maxlength="75" accesskey="e">
-<?py #endif ?>
-<?py if disable_subject: ?>
+<?py if disable_subject or replythread: ?>
               <input type="submit" value="Submit" accesskey="z">
 <?py #endif ?>
             </td>
           </tr>
-<?py if not forced_anonymous: ?>
+<?py if not disable_subject and not replythread: ?>
           <tr>
             <td class="postblock">
               Subject
