@@ -8,21 +8,36 @@ from settings import Settings
 from database import *
 
 def setBoard(dir):
+  """
+  Sets the board which the script is operating on by filling Settings._BOARD
+  with the data from the db.  Once the data is set, the configuration field from
+  the database is unpickled and placed in a pseudo-field called settings.
+  All settings have a default value which will remain that way until the script
+  changes and updates the board by calling updateBoardSettings()
+  This allows new settings to be added for each board without requiring any SQL
+  queries to be ran
+  """
   board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '" + _mysql.escape_string(dir) + "' LIMIT 1")
+  
   board['settings'] = {
     'anonymous': 'Anonymous',
     'forced_anonymous': False,
     'disable_subject': False,
     'tripcode_character': '!',
   }
+  
   if board['configuration'] != '':
     configuration = pickle.loads(board['configuration'])
     board['settings'].update(configuration)
     
   Settings._BOARD = board
+  
   return board
   
 def updateBoardSettings():
+  """
+  Pickle the board's settings and store it in the configuration field
+  """
   board = Settings._BOARD
   configuration = pickle.dumps(board['settings'])
   

@@ -26,13 +26,7 @@ class Settings(object):
   MAX_DIMENSION_FOR_OP_IMAGE = 200
   MAX_DIMENSION_FOR_REPLY_IMAGE = 125
   MAX_DIMENSION_FOR_IMAGE_CATALOG = 50
-
-  ANONYMOUS = '' # Name to display when no name is entered in the name field.  Set to an empty string to completely remove names from post display
-  POST_TRIPCODE_CHARACTER = '!'
-  FORCED_ANONYMOUS = True # If set, all posts will be flagged as anonymous, and will not display a name or tripcode
-  DISABLE_SUBJECT = True # If set, users will not be allowed to enter subjects for their posts
-
+  
   # Non-editable configuration (beginning with an underscore) follows
-  _ADMINISTRATOR_VIEW = False # When the script sets this to True, special administrator commands will be visible, and pages will not be retrieved from/stored in the cache
   _BOARD = False
   _UNIQUE_USER_POSTS = 0
