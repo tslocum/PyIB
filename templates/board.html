@@ -1,0 +1,206 @@
+<?py include('templates/base_top.html') ?>
+<?py if replythread: ?>
+    &#91;<a href="#{boards_url}#{board}/">Return</a>&#93;<div class="replymode">Posting mode: Reply</div>
+<?py #endif ?>
+    <div class="postarea">
+      <form name="postform" id="postform" action="#{cgi_url}post" method="post" enctype="multipart/form-data">
+      <input type="hidden" name="board" value="#{board}">
+<?py if replythread: ?>
+      <input type="hidden" name="parent" value="#{replythread}">
+<?py #endif ?>
+      <input type="hidden" name="MAX_FILE_SIZE" value="#{MAX_FILE_SIZE}">
+      <p>
+      <table class="postform">
+        <tbody>
+<?py if not forced_anonymous: ?>
+          <tr>
+            <td class="postblock">
+              Name
+            </td>
+            <td>
+              <input type="text" name="name" size="19" maxlength="75" accesskey="n">
+            </td>
+          </tr>
+<?py #endif ?>
+          <tr>
+            <td class="postblock">
+              Email
+            </td>
+            <td>      
+<?py if forced_anonymous and disable_subject: ?>
+              <input type="text" name="email" size="28" maxlength="75" accesskey="e">
+<?py else: ?>
+              <input type="text" name="email" size="19" maxlength="75" accesskey="e">
+<?py #endif ?>
+<?py if disable_subject: ?>
+              <input type="submit" value="Submit" accesskey="z">
+<?py #endif ?>
+            </td>
+          </tr>
+<?py if not forced_anonymous: ?>
+          <tr>
+            <td class="postblock">
+              Subject
+            </td>
+            <td>
+              <input type="text" name="subject" size="40" maxlength="75" accesskey="s">
+              <input type="submit" value="Submit" accesskey="z">
+            </td>
+          </tr>
+<?py #endif ?>
+          <tr>
+            <td class="postblock">
+              Message
+            </td>
+            <td>
+              <textarea name="message" cols="48" rows="4" accesskey="m"></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td class="postblock">
+              File<a href="?admin" style="text-decoration: none;" accesskey="x">&nbsp;</a>
+            </td>
+            <td>
+              <input type="file" name="file" size="35" accesskey="f">
+            </td>
+          </tr>
+          <tr>
+            <td class="postblock">
+              Options
+            </td>
+            <td>
+              <input type="checkbox" name="aa" id="aa"><label for="aa">Fixed width font</label>
+            </td>
+          </tr>
+          <tr>
+            <td class="postblock">
+              Password
+            </td>
+            <td>
+              <input type="password" name="password" size="8" accesskey="p">&nbsp;(for post and file deletion)
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2" class="rules">
+              <ul style="margin-left: 0; margin-top: 0; margin-bottom: 0; padding-left: 0;">
+                <li>Supported file types are: GIF, JPG, PNG</li>
+                <li>Maximum file size allowed is #{maxsize_display}.</li>
+                <li>Images greater than #{maxdimensions}x#{maxdimensions} pixels will be thumbnailed.</li>
+                <li>Currently #{unique_user_posts} unique user posts.<!-- <a href="/catalog.html">View catalog</a>--></li>
+              </ul>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </form>
+    </div>
+    <script type="text/javascript"><!--
+      set_inputs("postform");
+    //--></script>
+    <hr>
+    <form id="delform" action="/delete" method="post">
+<?py for thread in threads: ?>
+  <?py for post in thread['posts']: ?>
+    <?py if int(post['parentid']) != 0: ?>
+    <table>
+    <tbody>
+    <tr>
+    <td class="doubledash">
+      &gt;&gt;
+    </td>
+    <td class="reply" id="reply#{post['id']}">
+    <?py elif post['file'] != '': ?>
+    <span class="filesize">File: <a href="/#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '/#{board}/src/#{post['file']}', '/#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
+    <br>
+    <a target="_blank" href="/#{board}/src/#{post['file']}">
+      <span id="thumb#{post['id']}"><img src="/#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
+    </a>
+    <?py #endif ?>
+    <a name="#{post['id']}"></a>
+    <label>
+      <input type="checkbox" name="delete" value="#{post['id']}">
+    <?py if post['subject'] != '': ?>
+      <span class="filetitle">#{post['subject']}</span>
+    <?py #endif ?>
+      #{post['nameblock']}
+    </label>
+    <span class="reflink">
+    <?py if replythread: ?>
+      <a href="##{post['id']}" onclick="javascript:highlight('#{post['id']}');">No.</a>
+      <a href="#i#{post['id']}" onclick="insert('>>#{post['id']}');">
+      #{post['id']}
+      </a>
+    <?py else: ?>
+      <?py if int(post['parentid']) != 0: ?>
+      <a href="/#{board}/res/#{post['parentid']}.html##{post['id']}">No.</a>
+      <a href="/#{board}/res/#{post['parentid']}.html#i#{post['id']}">
+      <?py else: ?>
+      <a href="/#{board}/res/#{post['id']}.html##{post['id']}">No.</a>
+      <a href="/#{board}/res/#{post['id']}.html#i#{post['id']}">
+      <?py #endif ?>
+      #{post['id']}
+      </a>
+    <?py #endif ?>
+    </span>
+    <?py if int(post['parentid']) != 0: ?>
+      <?py if post['file'] != '': ?>
+    <br>
+    <span class="filesize">File: <a href="/#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '/#{board}/src/#{post['file']}', '/#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
+    <br>
+    <a target="_blank" href="/#{board}/src/#{post['file']}">
+      <span id="thumb#{post['id']}"><img src="/#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
+    </a>
+      <?py #endif ?>
+    <?py elif not replythread: ?>
+    &nbsp;[<a href="/#{board}/res/#{post['id']}.html">Reply</a>]
+    <?py #endif ?>
+    <blockquote>
+    #{post['message']}
+    </blockquote>
+    <?py if int(post['parentid']) == 0: ?>
+      <?py if not replythread: ?>
+        <?py if int(thread['omitted']) > 0: ?>
+          <span class="omittedposts">
+          #{thread['omitted']}
+            <?py if int(thread['omitted']) == 1: ?>
+            post
+            <?py else: ?>
+            posts
+            <?py #endif ?>
+          omitted.  Click Reply to view.
+        </span>
+        <?py #endif ?>
+      <?py #endif ?>
+    <?py else: ?>
+    </td>
+    </tr>
+    </tbody>
+    </table>
+    <?py #endif ?>
+  <?py #endfor ?>
+        <br clear="left">
+        <hr>
+<?py #endfor ?>
+    <table class="userdelete">
+      <tbody>
+        <tr>
+          <td>
+            Delete Post [<input type="checkbox" name="imageonly" id="imageonly" checked><label for="imageonly">Image Only</label>]<br>Password <input type="password" name="password" size="8">&nbsp;<input name="deletepost" value="Delete" type="submit">
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </form>
+    <script type="text/javascript"><!--
+      set_delpass("delform");
+    //--></script>
+<?py if page_navigator: ?>
+    <table border="1">
+      <tbody>
+        <tr>
+          #{page_navigator}
+        </tr>
+      </tbody>
+    </table>
+<?py #endif ?>
+<?py include('templates/base_bottom.html') ?>
