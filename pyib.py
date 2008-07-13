@@ -145,18 +145,25 @@ def pyib(environ, start_response):
     else:
       threadUpdated(postid)
       output += '<meta http-equiv="refresh" content="0;url=' + Settings.BOARDS_URL + board['dir'] + '/">--&gt; --&gt; --&gt;'
-  elif environ['PATH_INFO'] == '/admin':
-    output += 'f'
-  elif environ['PATH_INFO'] == '/rebuild':
-    board = FetchOne("SELECT * FROM `boards` WHERE `dir` = 'b' LIMIT 1")
-    Settings._BOARD = board
-    op_posts = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'])
-    for op_post in op_posts:
-      regenerateThreadPage(op_post['id'])
-    regenerateFrontPages()
-    output += 'Done.'
   else:
-    output += '<meta http-equiv="refresh" content="0;url=' + Settings.HOME_URL + '">--&gt; --&gt; --&gt;'
+    path_split = environ['PATH_INFO'].split('/')
+    
+    if path_split[1] == 'admin':
+      board = FetchOne("SELECT * FROM `boards` WHERE `dir` = 'b' LIMIT 1")
+      Settings._BOARD = board
+      deletePost(4211)
+      output += 'f'
+    elif path_split[1] == 'rebuild':
+      board = FetchOne("SELECT * FROM `boards` WHERE `dir` = 'b' LIMIT 1")
+      Settings._BOARD = board
+      op_posts = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'])
+      for op_post in op_posts:
+        regenerateThreadPage(op_post['id'])
+      regenerateFrontPages()
+      output += 'Done.'
+    else:
+      # Redirect the user back to the front page
+      output += '<meta http-equiv="refresh" content="0;url=' + Settings.HOME_URL + '">--&gt; --&gt; --&gt;'
 
   return [output]
   

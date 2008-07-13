@@ -4,7 +4,9 @@ import re
 from settings import Settings
 
 def tripcode(pw):
-  import crypt
+  """
+  Calculate tripcode to match output of most imageboards
+  """
   from crypt import crypt
   pw = pw.encode('sjis', 'ignore')	\
     .replace('"', '&quot;')		\
@@ -18,7 +20,13 @@ def tripcode(pw):
   return crypt(pw, salt)[-10:]
 
 def nameBlock(post_name, post_tripcode, post_email, post_timestamp_formatted):
+  """
+  Creates a string containing HTML formatted poster name data.  This saves quite
+  a bit of time when templating pages, as it saves the engine a few conditions
+  per post, which adds up over the time of processing entire pages
+  """
   nameblock = ''
+  
   if post_name == '' and post_tripcode == '':
     post_anonymous = True
   else:
@@ -81,18 +89,28 @@ def clickableURLs(message):
   return string.join(urllist, '')
 
 def checkRefLinks(message, parentid):
+  """
+  Check for >># links in posts and replace with the HTML to make them clickable
+  """
   board = Settings._BOARD
+  
   # TODO: Make this use a callback and allow reference links to posts in other threads
   message = re.compile(r'&gt;&gt;([0-9]+)').sub('<a href="' + Settings.BOARDS_URL + board['dir'] + '/res/' + str(parentid) + r'.html#\1" onclick="javascript:highlight(' + '\'' + r'\1' + '\'' + r', true);">&gt;&gt;\1</a>', message)
   
   return message
 
 def checkQuotes(message):
+  """
+  Check for >text in posts and add span around it to color according to the css
+  """
   message = re.compile(r'^&gt;(.*)$', re.MULTILINE).sub(r'<span class="unkfunc">&gt;\1</span>', message)
   
   return message
 
 def checkAllowedHTML(message):
+  """
+  Allow <b>, <i>, <u>, <strike>, and <pre> in posts
+  """
   message = re.compile(r'&lt;b&gt;(.*)&lt;/b&gt;', re.DOTALL | re.IGNORECASE).sub(r'<b>\1</b>', message)
   message = re.compile(r'&lt;i&gt;(.*)&lt;/i&gt;', re.DOTALL | re.IGNORECASE).sub(r'<i>\1</i>', message)
   message = re.compile(r'&lt;u&gt;(.*)&lt;/u&gt;', re.DOTALL | re.IGNORECASE).sub(r'<u>\1</u>', message)

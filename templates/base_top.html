@@ -3,9 +3,9 @@
   <head>
     <title>
 <?py if board: ?>
-    /#{board}/ - #{board_name}
+      /#{board}/ - #{board_name}
 <?py else: ?>
-    #{title}
+      #{title}
 <?py #endif ?>
     </title>
     <link rel="stylesheet" href="#{boards_url}static/css/global.css">
@@ -21,9 +21,7 @@
     <div class="adminbar">
       [<a href="#" onclick="javascript:set_stylesheet('Futaba');return false;">Futaba</a>] [<a href="#" onclick="javascript:set_stylesheet('Burichan');return false;">Burichan</a>] - [<a href="#{home_url}">Home</a>] [<a href="#{cgi_url}admin">Manage</a>]
     </div>
-    <div class="navbar">
-      [ <a title="Rule 34" href="/34/">34</a> / <a title="Random" href="/b/">b</a> ] [ <a title="Anime" href="/a/">a</a> / <a title="Cats" href="/cat/">cat</a> / <a title="SFW Comics" href="/co/">co</a> / <a title="Flash" href="/fl/">fl</a> / <a title="Games" href="/g/">g</a> / <a title="Animated GIFs" href="/gif/">gif</a> / <a title="Oekaki" href="/oe/">oe</a> / <a title="Photography" href="/pho/">pho</a> / <a title="Request" href="/r/">r</a> / <a title="Video Games" href="/vg/">vg</a> / <a title="Weapons" href="/w/">w</a> / <a title="Wallpaper" href="/wp/">wp</a> / <a title="Paranormal" href="/x/">x</a> / <a title="Zombies" href="/zom/">zom</a> ] [ <a title="Literature" href="/lit/">lit</a> / <a title="not7chan Discussion" href="/n7c/">n7c</a> / <a title="Programming" href="/prog/">prog</a> / <a title="Technology" href="/tech/">tech</a> ] [ <a title="Lolicon" href="/cake/">cake</a> / <a title="Alternative Hentai" href="/d/">d</a> / <a title="Dickgirls" href="/di/">di</a> / <a title="Erotic Literature" href="/elit/">elit</a> / <a title="Futanari" href="/fn/">fn</a> / <a title="Guro" href="/gu/">gu</a> / <a title="General Hentai" href="/h/">h</a> / <a title="Sexy Beautiful Men" href="/men/">men</a> / <a title="Neko Girls" href="/n/">n</a> / <a title="NSFW Comics" href="/pco/">pco</a> / <a title="Sexy Beautiful Women" href="/s/">s</a> / <a title="Shotacon" href="/sm/">sm</a> / <a title="Straight Shotacon" href="/ss/">ss</a> / <a title="Yuri" href="/u/">u</a> / <a title="Uniforms" href="/unf/">unf</a> / <a title="Yaoi" href="/y/">y</a> ]
-    </div>
+<?py include('templates/navbar.html') ?>
     <div class="logo">
       <img src="#{banner_url}" width="#{banner_width}" height="#{banner_height}" alt="Logo"><br>
 <?py if board: ?>

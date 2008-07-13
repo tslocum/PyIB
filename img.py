@@ -12,6 +12,11 @@ from database import *
 from framework import *
 
 def processImage(post, data, t):
+  """
+  Take all post data from <post>, process uploaded file in <data>, and calculate
+  file names using datetime <t>
+  Returns updated <post> with file and thumb values
+  """
   board = Settings._BOARD
   
   content_type, width, height = getImageInfo(data)
@@ -131,6 +136,10 @@ def getImageInfo(data):
     return content_type, width, height
 
 def getThumbDimensions(width, height, maxsize):
+  """
+  Calculate dimensions to use for a thumbnail with maximum width/height of
+  <maxsize>, keeping aspect ratio
+  """
   wratio = (float(maxsize) / float(width))
   hratio = (float(maxsize) / float(height))
   
@@ -147,15 +156,22 @@ def getThumbDimensions(width, height, maxsize):
   return int(thumb_width), int(thumb_height)
 
 def getFileHex(data):
+  """
+  Calculate MD5 of file using <data>
+  """
   m = md5.new()
   m.update(data)
   
   return m.hexdigest()
 
-def checkFileNotDuplicate(image):
+def checkFileNotDuplicate(data):
+  """
+  Check that the file <data> does not already exist in a live post on the
+  current board by calculating its hex and checking it against the database
+  """
   board = Settings._BOARD
   
-  file_hex = getFileHex(image)
+  file_hex = getFileHex(data)
   post = FetchOne("SELECT `id`, `parentid` FROM `posts` WHERE `file_hex` = '" + file_hex + "' AND `boardid` = " + board['id'] + " LIMIT 1")
   if post:
     if int(post['parentid']) != 0:

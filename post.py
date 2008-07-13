@@ -6,10 +6,17 @@ from template import *
 from settings import Settings
 
 def threadUpdated(postid):
+  """
+  Shortcut to update front pages and thread page by passing a thread id
+  """
   regenerateFrontPages()
   regenerateThreadPage(postid)
 
 def regenerateFrontPages():
+  """
+  Regenerates index.html and #.html for each page after that according to the
+  number of live threads in the database
+  """
   board = Settings._BOARD
   threads = []
   
@@ -22,8 +29,7 @@ def regenerateFrontPages():
       if replies:
         if len(replies) == Settings.REPLIES_SHOWN_ON_FRONT_PAGE:
           thread['omitted'] = (int(FetchOne('SELECT COUNT(*) FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + op_post['id'], 0)[0]) - Settings.REPLIES_SHOWN_ON_FRONT_PAGE)
-        for reply in replies[::-1]:
-          thread['posts'].append(reply)
+        [thread['posts'].append(reply) for reply in replies[::-1]]
     except:
       pass
 
@@ -36,8 +42,7 @@ def regenerateFrontPages():
     start = i * Settings.THREADS_SHOWN_ON_FRONT_PAGE
     end = start + Settings.THREADS_SHOWN_ON_FRONT_PAGE
     pages.append([])
-    for thread in threads[start:end]:
-      pages[i].append(thread)
+    [pages[i].append(thread) for thread in threads[start:end]]
   
   page_num = 0
   for page in pages:
@@ -56,6 +61,9 @@ def regenerateFrontPages():
     page_num += 1
   
 def regenerateThreadPage(postid):
+  """
+  Regenerates /res/#.html for supplied thread id
+  """
   board = Settings._BOARD
   
   try:
@@ -67,8 +75,7 @@ def regenerateThreadPage(postid):
       try:
         replies = FetchAll('SELECT * FROM `posts` WHERE `parentid` = ' + op_post['id'] + ' AND `boardid` = ' + board['id'] + ' ORDER BY `id` ASC')
         if replies:
-          for reply in replies:
-            thread['posts'].append(reply)
+          [thread['posts'].append(reply) for reply in replies]
       except:
         pass
 
@@ -86,22 +93,34 @@ def regenerateThreadPage(postid):
     raise Exception, message
   
 def deletePost(postid):
+  """
+  Remove post from database and unlink file (if present), along with all replies
+  if supplied post is a thread
+  """
   global db
   board = Settings._BOARD
   
-  post = FetchOne('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `id` = ' + postid + ' LIMIT 1')
+  post = FetchOne('SELECT `id`, `parentid`, `file`, `thumb` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `id` = ' + str(postid) + ' LIMIT 1')
   if post:
-    if post['parentid'] != 0:
-      replies = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + postid + ' LIMIT 1')
-      for reply in replies:
-        deletePost(reply['id'])
+    if int(post['parentid']) == 0:
+      replies = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + str(postid))
+      [deletePost(reply['id']) for reply in replies]
 
     if post['file'] != '':
       deleteFile(post)
       
     db.query('DELETE FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `id` = ' + post['id'] + ' LIMIT 1')
+    
+    if int(post['parentid']) == 0:
+      try:
+        os.unlink(Settings.ROOT_DIR + board['dir'] + '/res/' + post['id'] + '.html')
+      except:
+        pass
 
 def deleteFile(post):
+  """
+  Unlink file and thumb of supplied post
+  """
   board = Settings._BOARD
 
   try:
@@ -115,15 +134,20 @@ def deleteFile(post):
     pass
 
 def trimThreads():
+  """
+  Delete any threads which have passed the MAX_THREADS setting
+  """
   board = Settings._BOARD
   
   op_posts = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = 0 ORDER BY `bumped` DESC')
   if len(op_posts) > Settings.MAX_THREADS:
-    posts_to_trim = op_posts[Settings.MAX_THREADS:]
-    for post_to_trim in posts_to_trim:
-      deletePost(post_to_trim['id'])
+    posts = op_posts[Settings.MAX_THREADS:]
+    [deletePost(post['id']) for post in posts]
 
 def pageNavigator(page_num, page_count):
+  """
+  Create page navigator in the format of [0], [1], [2]...
+  """
   board = Settings._BOARD
   
   page_navigator = '<td>'
@@ -144,7 +168,7 @@ def pageNavigator(page_num, page_count):
       page_navigator += '[' + str(i) + '] '
     else:
       if i == 0:
-         page_navigator += '[<a href="' + Settings.BOARDS_URL + board['dir'] + '/">' + str(i) + '</a>] '
+        page_navigator += '[<a href="' + Settings.BOARDS_URL + board['dir'] + '/">' + str(i) + '</a>] '
       else:
         page_navigator += '[<a href="' + Settings.BOARDS_URL + board['dir'] + '/' + str(i) + '.html">' + str(i) + '</a>] '
         
