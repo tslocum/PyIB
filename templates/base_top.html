@@ -8,6 +8,7 @@
       #{title}
 <?py #endif ?>
     </title>
+    <link rel="shortcut icon" href="#{boards_url}static/favicon.ico">
     <link rel="stylesheet" href="#{boards_url}static/css/global.css">
     <link rel="alternate stylesheet" type="text/css" href="#{boards_url}static/css/futaba.css" title="Futaba">
     <link rel="stylesheet" type="text/css" href="#{boards_url}static/css/burichan.css" title="Burichan">
@@ -19,9 +20,11 @@
   </head>
   <body>
     <div class="adminbar">
-      [<a href="#" onclick="javascript:set_stylesheet('Futaba');return false;">Futaba</a>] [<a href="#" onclick="javascript:set_stylesheet('Burichan');return false;">Burichan</a>] - [<a href="#{home_url}">Home</a>] [<a href="#{cgi_url}admin">Manage</a>]
+      [<a href="#" onclick="javascript:set_stylesheet('Futaba');return false;">Futaba</a>] [<a href="#" onclick="javascript:set_stylesheet('Burichan');return false;">Burichan</a>] - [<a href="#{home_url}">Home</a>] [<a href="#{cgi_url}manage">Manage</a>]
     </div>
-<?py include('templates/navbar.html') ?>
+<?py if navbar: ?>
+  <?py include('templates/navbar.html') ?>
+<?py #endif ?>
     <div class="logo">
       <img src="#{banner_url}" width="#{banner_width}" height="#{banner_height}" alt="Logo"><br>
 <?py if board: ?>

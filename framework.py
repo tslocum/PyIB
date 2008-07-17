@@ -3,6 +3,7 @@ import datetime
 import time
 import pickle
 import _mysql
+from Cookie import SimpleCookie
 
 from settings import Settings
 from database import *
@@ -31,6 +32,7 @@ def setBoard(dir):
     board['settings'].update(configuration)
     
   Settings._BOARD = board
+  Settings._UNIQUE_USER_POSTS = 0
   
   return board
   
@@ -51,6 +53,9 @@ def timestamp(t=None):
   if not t:
     t = datetime.datetime.now()
   return int(time.mktime(t.timetuple()))
+
+def timeTaken(time_start, time_finish):
+  return str(round(time_finish - time_start, 2))
 
 def get_post_form(environ):
   """
@@ -91,3 +96,54 @@ class InputProcessed(object):
   def read(self):
     raise EOFError('The wsgi.input stream has already been consumed')
   readline = readlines = __iter__ = read
+  
+def setCookie(self, key, value='', max_age=None, expires=None, path='/', domain=None, secure=None):
+  """
+  Copied from Colubrid
+  """
+  if self._cookies is None:
+    self._cookies = SimpleCookie()
+  self._cookies[key] = value
+  if not max_age is None:
+    self._cookies[key]['max-age'] = max_age
+  if not expires is None:
+    if isinstance(expires, basestring):
+      self._cookies[key]['expires'] = expires
+      expires = None
+    elif isinstance(expires, datetime):
+      expires = expires.utctimetuple()
+    elif not isinstance(expires, (int, long)):
+      expires = datetime.datetime.gmtime(expires)
+    else:
+      raise ValueError('datetime or integer required')
+    if not expires is None:
+      now = datetime.datetime.gmtime()
+      month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
+               'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][now.tm_mon - 1]
+      day = ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
+             'Friday', 'Saturday', 'Sunday'][expires.tm_wday]
+      date = '%02d-%s-%s' % (
+          now.tm_mday, month, str(now.tm_year)[-2:]
+      )
+      d = '%s, %s %02d:%02d:%02d GMT' % (day, date, now.tm_hour,
+                                         now.tm_min, now.tm_sec)
+      self._cookies[key]['expires'] = d
+  if not path is None:
+    self._cookies[key]['path'] = path
+  if not domain is None:
+    if domain != 'THIS':
+      self._cookies[key]['domain'] = domain
+  else:
+    self._cookies[key]['domain'] = Settings.DOMAIN
+  if not secure is None:
+    self._cookies[key]['secure'] = secure
+
+def deleteCookie(self, key):
+  """
+  Copied from Colubrid
+  """
+  if self._cookies is None:
+    self._cookies = SimpleCookie()
+  if not key in self._cookies:
+    self._cookies[key] = ''
+  self._cookies[key]['max-age'] = 0

@@ -1,6 +1,6 @@
 class Settings(object):
-  APP_NAME = 'pyib' # App name, as displayed in the app engine panel
-  
+  NAME = 'not7chan'
+  DOMAIN = '.n7c.org'
   ROOT_DIR = '/home/.cassandra/tj9991/img.n7c.org/'
   HOME_URL = 'http://n7c.org/'
   BOARDS_URL = 'http://img.n7c.org/'
@@ -28,5 +28,5 @@ class Settings(object):
   MAX_DIMENSION_FOR_IMAGE_CATALOG = 50
   
   # Non-editable configuration (beginning with an underscore) follows
-  _BOARD = False
+  _BOARD = None
   _UNIQUE_USER_POSTS = 0

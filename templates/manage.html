@@ -1,0 +1,11 @@
+<?py include('templates/base_top.html') ?>
+<?py if validated: ?>
+  <div style="text-align: center;">
+    Logged in as <b>#{username}</b><br>
+    - <a href="#{cgi_url}manage">Home</a> - <a href="#{cgi_url}manage/rebuild">Rebuild board</a> - <a href="#{cgi_url}manage/logout">Log out</a> -
+  </div>
+  <hr>
+<?py #endif ?>
+#{page}
+<hr>
+<?py include('templates/base_bottom.html') ?>

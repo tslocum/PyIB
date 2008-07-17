@@ -91,6 +91,14 @@ def regenerateThreadPage(postid):
       
   except Exception, message:
     raise Exception, message
+
+def regenerateBoard():
+  board = Settings._BOARD
+  
+  op_posts = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = 0')
+  for op_post in op_posts:
+    regenerateThreadPage(op_post['id'])
+  regenerateFrontPages()
   
 def deletePost(postid):
   """

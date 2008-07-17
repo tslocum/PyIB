@@ -298,13 +298,6 @@ window.onunload=function(e) {
 
 window.onload=function(e) {
 	checkhighlight();
-	
-	if (getCookie('anonymous') == 'yes') {
-  	checkbox = document.getElementById('anonymous');
-    if (checkbox) {
-      checkbox.checked = true;
-    }
-  }
 }
 
 if(style_cookie) {
