@@ -106,10 +106,10 @@
     </td>
     <td class="reply" id="reply#{post['id']}">
     <?py elif post['file'] != '': ?>
-    <span class="filesize">File: <a href="/#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '/#{board}/src/#{post['file']}', '/#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
+    <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
     <br>
-    <a target="_blank" href="/#{board}/src/#{post['file']}">
-      <span id="thumb#{post['id']}"><img src="/#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
+    <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
+      <span id="thumb#{post['id']}"><img src="#{boards_url}#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
     </a>
     <?py #endif ?>
     <a name="#{post['id']}"></a>
@@ -138,13 +138,16 @@
       </a>
     <?py #endif ?>
     </span>
+    <?py if modbrowse: ?>
+    [#{post['ip']}]
+    <?py #endif ?>
     <?py if int(post['parentid']) != 0: ?>
       <?py if post['file'] != '': ?>
     <br>
-    <span class="filesize">File: <a href="/#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '/#{board}/src/#{post['file']}', '/#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
+    <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
     <br>
-    <a target="_blank" href="/#{board}/src/#{post['file']}">
-      <span id="thumb#{post['id']}"><img src="/#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
+    <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
+      <span id="thumb#{post['id']}"><img src="#{boards_url}#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
     </a>
       <?py #endif ?>
     <?py elif not replythread: ?>

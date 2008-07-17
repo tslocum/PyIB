@@ -26,7 +26,7 @@ def setBoard(dir):
     'disable_subject': False,
     'tripcode_character': '!',
   }
-  
+
   if board['configuration'] != '':
     configuration = pickle.loads(board['configuration'])
     board['settings'].update(configuration)

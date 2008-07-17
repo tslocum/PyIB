@@ -30,3 +30,4 @@ class Settings(object):
   # Non-editable configuration (beginning with an underscore) follows
   _BOARD = None
   _UNIQUE_USER_POSTS = 0
+  _MODBROWSE = False

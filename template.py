@@ -33,6 +33,7 @@ def renderTemplate(template, template_values={}):
     'unique_user_posts': None,
     'page_navigator': '',
     'navbar': True,
+    'modbrowse': Settings._MODBROWSE,
   }
   
   engine = tenjin.Engine()

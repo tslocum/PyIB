@@ -66,6 +66,17 @@ def regenerateThreadPage(postid):
   """
   board = Settings._BOARD
   
+  page = threadPage(postid)
+  
+  f = open(Settings.ROOT_DIR + board['dir'] + '/res/' + str(postid) + '.html', 'w')
+  try:
+    f.write(page)
+  finally:
+    f.close()
+
+def threadPage(postid):
+  board = Settings._BOARD
+  
   try:
     postid = int(postid)
     op_post = FetchOne("SELECT * FROM `posts` WHERE `id` = " + str(postid) + " AND `boardid` = " + board['id'] + " LIMIT 1")
@@ -81,14 +92,7 @@ def regenerateThreadPage(postid):
 
       threads = [thread]
 
-    page = renderTemplate('board.html', {'threads': threads, 'replythread': postid})
-    
-    f = open(Settings.ROOT_DIR + board['dir'] + '/res/' + str(postid) + '.html', 'w')
-    try:
-      f.write(page)
-    finally:
-      f.close()
-      
+    return renderTemplate('board.html', {'threads': threads, 'replythread': postid})
   except Exception, message:
     raise Exception, message
 
