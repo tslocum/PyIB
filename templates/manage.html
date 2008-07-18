@@ -1,22 +1,22 @@
 <?py include('templates/base_top.html') ?>
 <?py if validated: ?>
   <div style="text-align: center;">
-    Logged in as <b><acronym title="Account created #{added}">#{username}</acronym></b> with 
+    Logged in as <b><acronym title="Account created #{added}">#{username}</acronym></b> with
     <?py if rights == '0': ?>
-    Super-Administrator 
+    Super-Administrator
     <?py elif rights == '1': ?>
-    Administrator 
+    Administrator
     <?py elif rights == '3': ?>
-    Moderator 
+    Moderator
     <?py #endif ?>
     privileges<br>
-    - <a href="#{cgi_url}manage">Home</a> - <a href="#{cgi_url}manage/logout">Log out</a> -
+    - <a href="#{cgi_url}manage">Home</a> - <a href="#{cgi_url}manage/modbrowse">Modbrowse</a> - <a href="#{cgi_url}manage/logout">Log out</a> -
     <?py if administrator: ?>
     <br>
     - <a href="#{cgi_url}manage/rebuild">Rebuild board</a> -
-      <?py if rights == '0': ?>
-       <a href="#{cgi_url}manage/staff">Staff</a> -
-      <?py #endif ?>
+    <?py if rights == '0': ?>
+    <a href="#{cgi_url}manage/staff">Staff</a> -
+    <?py #endif ?>
     <?py #endif ?>
   </div>
   <hr>

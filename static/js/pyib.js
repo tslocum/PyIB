@@ -263,12 +263,27 @@ function get_preferred_stylesheet() {
 	return null;
 }
 
-function anonymouscheckbox(checkbox) {
-	if (checkbox.checked) {
-    set_cookie('anonymous', 'yes', 30);
-  } else {
-    set_cookie('anonymous', 'no', 30);
-  }
+function delandbanlinks() {
+	if (!pyib_staff) return;
+	
+	var dnbelements = document.getElementsByTagName('span');
+	var dnbelement;
+	var dnbinfo;
+	for(var i=0;i<dnbelements.length;i++){
+		dnbelement = dnbelements[i];
+		if (dnbelement.getAttribute('class')) {
+			if (dnbelement.getAttribute('class').substr(0, 3) == 'dnb') {
+				dnbinfo = dnbelement.getAttribute('class').split('|');
+				var newhtml = '&#91;<a href="' + cgi_url + 'manage/delete/' + dnbinfo[1] + '/' + dnbinfo[2] + '" title="Delete" onclick="return confirm(\'Are you sure you want to delete this post/thread?\');">D<\/a>&nbsp;<a href="' + cgi_url + 'manage/delete/' + dnbinfo[1] + '/' + dnbinfo[2] + '?ban=true" title="Delete &amp; Ban" onclick="return confirm(\'Are you sure you want to delete and ban the poster of this post/thread?\');">&amp;<\/a>&nbsp;<a href="' + cgi_url + 'manage/ban/' + dnbinfo[1] + '/' + dnbinfo[2] + '" title="Ban">B<\/a>';
+				if (dnbinfo[3] == 'y') {
+				  newhtml += '&nbsp;<a href="' + cgi_url + 'manage/modbrowse/' + dnbinfo[1] + '/' + dnbinfo[2] + '" title="Modbrowse">M<\/a>';
+				}
+				newhtml += '&#93;';
+				
+				dnbelements[i].innerHTML = newhtml;
+			}
+		}
+	}
 }
 
 function set_inputs(id) {
@@ -298,6 +313,7 @@ window.onunload=function(e) {
 
 window.onload=function(e) {
 	checkhighlight();
+	delandbanlinks();
 }
 
 if(style_cookie) {
@@ -305,4 +321,8 @@ if(style_cookie) {
 	var title = cookie ? cookie : get_preferred_stylesheet();
 
 	set_stylesheet(title);
+}
+
+if (getCookie('pyib_staff')=='yes') {
+	pyib_staff = true;
 }
