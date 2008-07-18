@@ -24,7 +24,11 @@ class pyib(object):
     self.formdata = get_post_form(environ)
     self.output = ''
     self.handleRequest()
-    self.run()
+
+    try:
+      self.run()
+    except Exception, message:
+      self.output += renderTemplate('error.html', {'error': message, 'navbar': False})
   
   def __iter__(self):
     self.handleResponse()
@@ -34,7 +38,7 @@ class pyib(object):
   def run(self):
     environ = self.environ
     formdata = self.formdata
-    
+
     if environ['PATH_INFO'] == '/post':
       try:
         if formdata['board']:
@@ -68,7 +72,7 @@ class pyib(object):
         'thumb_height': 0,
         'thumb_catalog_width': 0,
         'thumb_catalog_height': 0,
-        'ip': '',
+        'ip': environ['REMOTE_ADDR'],
       }
       
       try:
@@ -83,7 +87,10 @@ class pyib(object):
           raise Exception, 'That parent post ID is invalid.'
       except:
         pass
-      
+
+      if not checkNotFlooding(post):
+        raise Exception, 'Flood detected.  Please try again'
+        
       try:
         if not board['settings']['forced_anonymous']:
           post['name'] = cgi.escape(formdata['name']).strip()
@@ -142,7 +149,6 @@ class pyib(object):
   
       post['timestamp_formatted'] = t.strftime("%y/%m/%d(%a)%H:%M:%S")
       post['nameblock'] = nameBlock(post['name'], post['tripcode'], post['email'], post['timestamp_formatted'])
-      post['ip'] = environ['REMOTE_ADDR']
       
       db.query("INSERT INTO posts " \
                "(`boardid`, `parentid`, `name`, `tripcode`, `email`, " \

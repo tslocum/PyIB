@@ -4,6 +4,7 @@ import os
 from database import *
 from template import *
 from settings import Settings
+from framework import *
 
 def threadUpdated(postid):
   """
@@ -193,3 +194,18 @@ def pageNavigator(page_num, page_count):
     page_navigator += '<form method="get" action="' + Settings.BOARDS_URL + board['dir'] + '/' + str(next) + '.html"><input value="Next" type="submit"></form></td>'
 
   return page_navigator
+
+def checkNotFlooding(post):
+  if post['parent'] == 0:
+    floodlimit = Settings.SECONDS_BETWEEN_NEW_THREADS
+  else:
+    floodlimit = Settings.SECONDS_BETWEEN_REPLIES
+
+  post = FetchOne('SELECT `timestamp` FROM `posts` WHERE `ip` = \'' + post['ip'] + '\' ORDER BY `timestamp` DESC LIMIT 1')
+  seconds_since = (timestamp() - int(post['timestamp']))
+  
+  if seconds_since < floodlimit:
+    return False
+  else:
+    return True
+  
