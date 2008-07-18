@@ -1,5 +1,6 @@
 import md5
 import _mysql
+import os
 
 from database import *
 from settings import Settings
@@ -216,6 +217,45 @@ def manage(self, path_split):
               page += 'Moderator'
             page += '</td><td><a href="' + Settings.CGI_URL + 'manage/staff/edit/' + member['id'] + '">edit</a> <a href="' + Settings.CGI_URL + '/manage/staff/delete/' + member['id'] + '">delete</a></td></tr>'
           page += '</table>'
+      elif path_split[2] == 'addboard':
+        action_taken = False
+        board_dir = ''
+        
+        try:
+          if formdata['name'] != '':
+            board_dir = formdata['dir']
+        except:
+          pass
+
+        if board_dir != '':
+          action_taken = True
+          board_exists = FetchOne('SELECT * FROM `boards` WHERE `dir` = \'' + _mysql.escape_string(board_dir) + '\' LIMIT 1')
+          if not board_exists:
+            os.mkdir(Settings.ROOT_DIR + board_dir)
+            os.mkdir(Settings.ROOT_DIR + board_dir + '/res')
+            os.mkdir(Settings.ROOT_DIR + board_dir + '/src')
+            os.mkdir(Settings.ROOT_DIR + board_dir + '/thumb')
+            if os.path.exists(Settings.ROOT_DIR + board_dir) and os.path.isdir(Settings.ROOT_DIR + board_dir):
+              db.query('INSERT INTO `boards` (`dir`, `name`) VALUES (\'' + _mysql.escape_string(board_dir) + '\', \'' + _mysql.escape_string(formdata['name']) + '\')')
+              board = setBoard(board_dir)
+              f = open(Settings.ROOT_DIR + board['dir'] + '/.htaccess', 'w')
+              try:
+                f.write('DirectoryIndex index.html')
+              finally:
+                f.close()
+              regenerateFrontPages()
+              page += 'Board added'
+            else:
+              page += 'There was a problem while making the directories'
+          else:
+            page += 'There is already a board with that directory'
+
+        if not action_taken:
+          page += '<form action="' + Settings.CGI_URL + 'manage/addboard" method="post">' + \
+          '<label for="dir">Directory</label> <input type="text" name="dir"><br>' + \
+          '<label for="name">Name</label> <input type="text" name="name"><br>' + \
+          '<label for="submit">&nbsp;</label> <input type="submit" name="submit" value="Add board">' + \
+          '</form>'
       elif path_split[2] == 'logout':
         page += 'Logging out...<meta http-equiv="refresh" content="0;url=' + Settings.CGI_URL + 'manage">'
         setCookie(self, 'pyib_manage', '', domain='THIS')

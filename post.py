@@ -36,14 +36,18 @@ def regenerateFrontPages():
 
     threads.append(thread)
 
-  page_count = int(math.ceil(float(len(op_posts)) / float(Settings.THREADS_SHOWN_ON_FRONT_PAGE)))
-  
   pages = []
-  for i in xrange(page_count):
-    start = i * Settings.THREADS_SHOWN_ON_FRONT_PAGE
-    end = start + Settings.THREADS_SHOWN_ON_FRONT_PAGE
-    pages.append([])
-    [pages[i].append(thread) for thread in threads[start:end]]
+  if len(op_posts) > 0:
+    page_count = int(math.ceil(float(len(op_posts)) / float(Settings.THREADS_SHOWN_ON_FRONT_PAGE)))
+    
+    for i in xrange(page_count):
+      start = i * Settings.THREADS_SHOWN_ON_FRONT_PAGE
+      end = start + Settings.THREADS_SHOWN_ON_FRONT_PAGE
+      pages.append([])
+      [pages[i].append(thread) for thread in threads[start:end]]
+  else:
+    page_count = 0
+    pages.append({})
   
   page_num = 0
   for page in pages:
@@ -201,8 +205,11 @@ def checkNotFlooding(post):
   else:
     floodlimit = Settings.SECONDS_BETWEEN_REPLIES
 
-  post = FetchOne('SELECT `timestamp` FROM `posts` WHERE `ip` = \'' + post['ip'] + '\' ORDER BY `timestamp` DESC LIMIT 1')
-  seconds_since = (timestamp() - int(post['timestamp']))
+  try:
+    post = FetchOne('SELECT `timestamp` FROM `posts` WHERE `ip` = \'' + post['ip'] + '\' ORDER BY `timestamp` DESC LIMIT 1')
+    seconds_since = (timestamp() - int(post['timestamp']))
+  except:
+    return True
   
   if seconds_since < floodlimit:
     return False

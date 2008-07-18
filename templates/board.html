@@ -95,95 +95,97 @@
     //--></script>
     <hr>
     <form id="delform" action="/delete" method="post">
-<?py for thread in threads: ?>
-  <?py for post in thread['posts']: ?>
-    <?py if int(post['parentid']) != 0: ?>
-    <table>
-    <tbody>
-    <tr>
-    <td class="doubledash">
-      &gt;&gt;
-    </td>
-    <td class="reply" id="reply#{post['id']}">
-    <?py elif post['file'] != '': ?>
-    <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
-    <br>
-    <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
-      <span id="thumb#{post['id']}"><img src="#{boards_url}#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
-    </a>
-    <?py #endif ?>
-    <a name="#{post['id']}"></a>
-    <label>
-      <input type="checkbox" name="delete" value="#{post['id']}">
-    <?py if post['subject'] != '': ?>
-      <span class="filetitle">#{post['subject']}</span>
-    <?py #endif ?>
-      #{post['nameblock']}
-    </label>
-    <span class="reflink">
-    <?py if replythread: ?>
-      <a href="##{post['id']}" onclick="javascript:highlight('#{post['id']}');">No.</a>
-      <a href="#i#{post['id']}" onclick="insert('>>#{post['id']}');">
-      #{post['id']}
-      </a>
-    <?py else: ?>
+<?py if threads: ?>
+  <?py for thread in threads: ?>
+    <?py for post in thread['posts']: ?>
       <?py if int(post['parentid']) != 0: ?>
-      <a href="#{boards_url}#{board}/res/#{post['parentid']}.html##{post['id']}">No.</a>
-      <a href="#{boards_url}#{board}/res/#{post['parentid']}.html#i#{post['id']}">
-      <?py else: ?>
-      <a href="#{boards_url}#{board}/res/#{post['id']}.html##{post['id']}">No.</a>
-      <a href="#{boards_url}#{board}/res/#{post['id']}.html#i#{post['id']}">
-      <?py #endif ?>
-      #{post['id']}
+      <table>
+      <tbody>
+      <tr>
+      <td class="doubledash">
+        &gt;&gt;
+      </td>
+      <td class="reply" id="reply#{post['id']}">
+      <?py elif post['file'] != '': ?>
+      <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
+      <br>
+      <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
+        <span id="thumb#{post['id']}"><img src="#{boards_url}#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
       </a>
-    <?py #endif ?>
-    </span>
-    <?py if modbrowse: ?>
-    [#{post['ip']}]
-    <?py #endif ?>
-    <?py if int(post['parentid']) == 0: ?>
-      <span class="dnb|#{board}|#{post['id']}|y"></span>
-    <?py else: ?>
-      <span class="dnb|#{board}|#{post['id']}|n"></span>
-        <?py if post['file'] != '': ?>
-    <br>
-    <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
-    <br>
-    <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
-      <span id="thumb#{post['id']}"><img src="#{boards_url}#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
-    </a>
-        <?py #endif ?>
-    <?py #endif ?>
-    <?py if int(post['parentid']) == 0 and not replythread: ?>
-      &nbsp;[<a href="#{boards_url}#{board}/res/#{post['id']}.html">Reply</a>]
-    <?py #endif ?>
-    <blockquote>
-    #{post['message']}
-    </blockquote>
-    <?py if int(post['parentid']) == 0: ?>
-      <?py if not replythread: ?>
-        <?py if int(thread['omitted']) > 0: ?>
-          <span class="omittedposts">
-          #{thread['omitted']}
-            <?py if int(thread['omitted']) == 1: ?>
-            post
-            <?py else: ?>
-            posts
-            <?py #endif ?>
-          omitted.  Click Reply to view.
-        </span>
-        <?py #endif ?>
       <?py #endif ?>
-    <?py else: ?>
-    </td>
-    </tr>
-    </tbody>
-    </table>
-    <?py #endif ?>
+      <a name="#{post['id']}"></a>
+      <label>
+        <input type="checkbox" name="delete" value="#{post['id']}">
+      <?py if post['subject'] != '': ?>
+        <span class="filetitle">#{post['subject']}</span>
+      <?py #endif ?>
+        #{post['nameblock']}
+      </label>
+      <span class="reflink">
+      <?py if replythread: ?>
+        <a href="##{post['id']}" onclick="javascript:highlight('#{post['id']}');">No.</a>
+        <a href="#i#{post['id']}" onclick="insert('>>#{post['id']}');">
+        #{post['id']}
+        </a>
+      <?py else: ?>
+        <?py if int(post['parentid']) != 0: ?>
+        <a href="#{boards_url}#{board}/res/#{post['parentid']}.html##{post['id']}">No.</a>
+        <a href="#{boards_url}#{board}/res/#{post['parentid']}.html#i#{post['id']}">
+        <?py else: ?>
+        <a href="#{boards_url}#{board}/res/#{post['id']}.html##{post['id']}">No.</a>
+        <a href="#{boards_url}#{board}/res/#{post['id']}.html#i#{post['id']}">
+        <?py #endif ?>
+        #{post['id']}
+        </a>
+      <?py #endif ?>
+      </span>
+      <?py if modbrowse: ?>
+      [#{post['ip']}]
+      <?py #endif ?>
+      <?py if int(post['parentid']) == 0: ?>
+        <span class="dnb|#{board}|#{post['id']}|y"></span>
+      <?py else: ?>
+        <span class="dnb|#{board}|#{post['id']}|n"></span>
+          <?py if post['file'] != '': ?>
+      <br>
+      <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
+      <br>
+      <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
+        <span id="thumb#{post['id']}"><img src="#{boards_url}#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
+      </a>
+          <?py #endif ?>
+      <?py #endif ?>
+      <?py if int(post['parentid']) == 0 and not replythread: ?>
+        &nbsp;[<a href="#{boards_url}#{board}/res/#{post['id']}.html">Reply</a>]
+      <?py #endif ?>
+      <blockquote>
+      #{post['message']}
+      </blockquote>
+      <?py if int(post['parentid']) == 0: ?>
+        <?py if not replythread: ?>
+          <?py if int(thread['omitted']) > 0: ?>
+            <span class="omittedposts">
+            #{thread['omitted']}
+              <?py if int(thread['omitted']) == 1: ?>
+              post
+              <?py else: ?>
+              posts
+              <?py #endif ?>
+            omitted.  Click Reply to view.
+          </span>
+          <?py #endif ?>
+        <?py #endif ?>
+      <?py else: ?>
+      </td>
+      </tr>
+      </tbody>
+      </table>
+      <?py #endif ?>
+    <?py #endfor ?>
+          <br clear="left">
+          <hr>
   <?py #endfor ?>
-        <br clear="left">
-        <hr>
-<?py #endfor ?>
+<?py #endif ?>
     <table class="userdelete">
       <tbody>
         <tr>
