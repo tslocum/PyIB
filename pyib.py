@@ -21,7 +21,7 @@ class pyib(object):
     global db
     self.environ = environ
     self.start = start_response
-    self.formdata = get_post_form(environ)
+    self.formdata = getFormData(self)
     self.output = ''
     self.handleRequest()
 
@@ -36,16 +36,13 @@ class pyib(object):
     yield self.output
   
   def run(self):
-    environ = self.environ
-    formdata = self.formdata
-
-    if environ['PATH_INFO'] == '/post':
+    if self.environ['PATH_INFO'] == '/post':
       try:
-        if formdata['board']:
-          board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '" + _mysql.escape_string(formdata['board']) + "' LIMIT 1")
+        if self.formdata['board']:
+          board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '" + _mysql.escape_string(self.formdata['board']) + "' LIMIT 1")
           if not board:
             raise Exception
-          board = setBoard(formdata['board'])
+          board = setBoard(self.formdata['board'])
         else:
           raise Exception
       except:
@@ -72,11 +69,11 @@ class pyib(object):
         'thumb_height': 0,
         'thumb_catalog_width': 0,
         'thumb_catalog_height': 0,
-        'ip': environ['REMOTE_ADDR'],
+        'ip': self.environ['REMOTE_ADDR'],
       }
       
       try:
-        parent = cgi.escape(formdata['parent']).strip()
+        parent = cgi.escape(self.formdata['parent']).strip()
         try:
           parent_post = FetchOne('SELECT COUNT(*) FROM `posts` WHERE `id` = ' + parent + ' AND `parentid` = 0 AND `boardid` = ' + board['id'] + ' LIMIT 1', 0)
           if int(parent_post[0]) > 0:
@@ -93,8 +90,8 @@ class pyib(object):
         
       try:
         if not board['settings']['forced_anonymous']:
-          post['name'] = cgi.escape(formdata['name']).strip()
-          setCookie(self, 'pyib_name', formdata['name'])
+          post['name'] = cgi.escape(self.formdata['name']).strip()
+          setCookie(self, 'pyib_name', self.formdata['name'])
       except:
         pass
       
@@ -106,18 +103,18 @@ class pyib(object):
             post['tripcode'] = tripcode(name_match.group(2))
   
       try:
-        post['email'] = cgi.escape(formdata['email']).strip()
+        post['email'] = cgi.escape(self.formdata['email']).strip()
       except:
         pass
       
       try:
         if not board['settings']['disable_subject'] and not post['parent']:
-          post['subject'] = cgi.escape(formdata['subject']).strip()
+          post['subject'] = cgi.escape(self.formdata['subject']).strip()
       except:
         pass
       
       try:
-        post['message'] = clickableURLs(cgi.escape(formdata['message']).rstrip()[0:8000])
+        post['message'] = clickableURLs(cgi.escape(self.formdata['message']).rstrip()[0:8000])
         post['message'] = checkAllowedHTML(post['message'])
         if post['parent'] != 0:
           post['message'] = checkRefLinks(post['message'], post['parent'])
@@ -127,7 +124,7 @@ class pyib(object):
         pass
       
       try:
-        post['password'] = formdata['password']
+        post['password'] = self.formdata['password']
         setCookie(self, 'pyib_password', post['password'])
       except:
         pass
@@ -136,8 +133,8 @@ class pyib(object):
       t = datetime.datetime.now()
   
       try:
-        if formdata['file']:
-          post = processImage(post, formdata['file'], t)
+        if self.formdata['file']:
+          post = processImage(post, self.formdata['file'], t)
       except Exception, message:
         raise Exception, 'Unable to process image:\n\n' + str(message)
   
@@ -170,7 +167,7 @@ class pyib(object):
       if post['parent']:
         if post['email'].lower() != 'sage':
           db.query('UPDATE `posts` SET bumped = ' + str(timestamp(t)) + ' WHERE `id` = ' + str(post['parent']) + ' AND `boardid` = ' + board['id'] + ' LIMIT 1')
-          setCookie(self, 'pyib_email', formdata['email'])
+          setCookie(self, 'pyib_email', self.formdata['email'])
           
         threadUpdated(post['parent'])
         self.output += '<meta http-equiv="refresh" content="0;url=' + Settings.BOARDS_URL + board['dir'] + '/res/' + str(post['parent']) + '.html">--&gt; --&gt; --&gt;'
@@ -178,7 +175,7 @@ class pyib(object):
         threadUpdated(postid)
         self.output += '<meta http-equiv="refresh" content="0;url=' + Settings.BOARDS_URL + board['dir'] + '/">--&gt; --&gt; --&gt;'
     else:
-      path_split = environ['PATH_INFO'].split('/')
+      path_split = self.environ['PATH_INFO'].split('/')
       caught = False
   
       if len(path_split) > 1:

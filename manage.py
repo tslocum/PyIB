@@ -10,21 +10,20 @@ from post import *
 
 def manage(self, path_split):
   global db
-  formdata = self.formdata
   page = ''
   validated = False
   administrator = False
   skiptemplate = False
   
   try:
-    if formdata['pyib_username'] and formdata['pyib_password']:
+    if self.formdata['pyib_username'] and self.formdata['pyib_password']:
       m = md5.new()
-      m.update(formdata['pyib_password'])
+      m.update(self.formdata['pyib_password'])
       password = m.hexdigest()
       
-      valid_account = FetchOne("SELECT * FROM `staff` WHERE `username` = '" + _mysql.escape_string(formdata['pyib_username']) + "' AND `password` = '" + _mysql.escape_string(password) + "' LIMIT 1")
+      valid_account = FetchOne("SELECT * FROM `staff` WHERE `username` = '" + _mysql.escape_string(self.formdata['pyib_username']) + "' AND `password` = '" + _mysql.escape_string(password) + "' LIMIT 1")
       if valid_account:
-        setCookie(self, 'pyib_manage', formdata['pyib_username'] + ':' + valid_account['password'], domain='THIS')
+        setCookie(self, 'pyib_manage', self.formdata['pyib_username'] + ':' + valid_account['password'], domain='THIS')
         setCookie(self, 'pyib_staff', 'yes')
       else:
         page += 'Incorrect username/password.<hr>'
@@ -93,8 +92,8 @@ def manage(self, path_split):
 
         if board_dir == '':
           try:
-            board_dir = formdata['dir']
-            thread_id = formdata['postid']
+            board_dir = self.formdata['dir']
+            thread_id = self.formdata['postid']
           except:
             pass
           
@@ -134,11 +133,11 @@ def manage(self, path_split):
                   action = 'edit/' + member['id']
                   
                   try:
-                    if formdata['username'] != '':
-                      if formdata['rights'] in ['0', '1', '2']:
+                    if self.formdata['username'] != '':
+                      if self.formdata['rights'] in ['0', '1', '2']:
                         action_taken = True
-                        if not ':' in formdata['username']:
-                          db.query("UPDATE `staff` SET `username` = '" + _mysql.escape_string(formdata['username']) + "', `rights` = " + formdata['rights'] + " LIMIT 1")
+                        if not ':' in self.formdata['username']:
+                          db.query("UPDATE `staff` SET `username` = '" + _mysql.escape_string(self.formdata['username']) + "', `rights` = " + self.formdata['rights'] + " LIMIT 1")
                           page += 'Staff member updated.'
                         else:
                           page += 'The character : can not be used in usernames.'
@@ -147,16 +146,16 @@ def manage(self, path_split):
             else:
               action = 'add'
               try:
-                if formdata['username'] != '' and formdata['password'] != '':
-                  username_taken = FetchOne('SELECT * FROM `staff` WHERE `username` = \'' + _mysql.escape_string(formdata['username']) + '\' LIMIT 1')
+                if self.formdata['username'] != '' and self.formdata['password'] != '':
+                  username_taken = FetchOne('SELECT * FROM `staff` WHERE `username` = \'' + _mysql.escape_string(self.formdata['username']) + '\' LIMIT 1')
                   if not username_taken:
-                    if formdata['rights'] in ['0', '1', '2']:
+                    if self.formdata['rights'] in ['0', '1', '2']:
                       action_taken = True
-                      if not ':' in formdata['username']:
+                      if not ':' in self.formdata['username']:
                         m = md5.new()
-                        m.update(formdata['password'])
+                        m.update(self.formdata['password'])
                         password = m.hexdigest()
-                        db.query("INSERT INTO `staff` (`username`, `password`, `added`, `rights`) VALUES ('" + _mysql.escape_string(formdata['username']) + "', '" + _mysql.escape_string(password) + "', " + str(timestamp()) + ", " + formdata['rights'] + ")")
+                        db.query("INSERT INTO `staff` (`username`, `password`, `added`, `rights`) VALUES ('" + _mysql.escape_string(self.formdata['username']) + "', '" + _mysql.escape_string(password) + "', " + str(timestamp()) + ", " + self.formdata['rights'] + ")")
                         page += 'Staff member added.'
                       else:
                         page += 'The character : can not be used in usernames.'
@@ -222,8 +221,8 @@ def manage(self, path_split):
         board_dir = ''
         
         try:
-          if formdata['name'] != '':
-            board_dir = formdata['dir']
+          if self.formdata['name'] != '':
+            board_dir = self.formdata['dir']
         except:
           pass
 
@@ -236,7 +235,7 @@ def manage(self, path_split):
             os.mkdir(Settings.ROOT_DIR + board_dir + '/src')
             os.mkdir(Settings.ROOT_DIR + board_dir + '/thumb')
             if os.path.exists(Settings.ROOT_DIR + board_dir) and os.path.isdir(Settings.ROOT_DIR + board_dir):
-              db.query('INSERT INTO `boards` (`dir`, `name`) VALUES (\'' + _mysql.escape_string(board_dir) + '\', \'' + _mysql.escape_string(formdata['name']) + '\')')
+              db.query('INSERT INTO `boards` (`dir`, `name`) VALUES (\'' + _mysql.escape_string(board_dir) + '\', \'' + _mysql.escape_string(self.formdata['name']) + '\')')
               board = setBoard(board_dir)
               f = open(Settings.ROOT_DIR + board['dir'] + '/.htaccess', 'w')
               try:
