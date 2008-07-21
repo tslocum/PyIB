@@ -82,24 +82,21 @@ def regenerateThreadPage(postid):
 def threadPage(postid):
   board = Settings._BOARD
   
-  try:
-    postid = int(postid)
-    op_post = FetchOne("SELECT * FROM `posts` WHERE `id` = " + str(postid) + " AND `boardid` = " + board['id'] + " LIMIT 1")
-    if op_post:
-      thread = {'posts': [op_post], 'omitted': 0}
+  postid = int(postid)
+  op_post = FetchOne("SELECT * FROM `posts` WHERE `id` = " + str(postid) + " AND `boardid` = " + board['id'] + " LIMIT 1")
+  if op_post:
+    thread = {'posts': [op_post], 'omitted': 0}
 
-      try:
-        replies = FetchAll('SELECT * FROM `posts` WHERE `parentid` = ' + op_post['id'] + ' AND `boardid` = ' + board['id'] + ' ORDER BY `id` ASC')
-        if replies:
-          [thread['posts'].append(reply) for reply in replies]
-      except:
-        pass
+    try:
+      replies = FetchAll('SELECT * FROM `posts` WHERE `parentid` = ' + op_post['id'] + ' AND `boardid` = ' + board['id'] + ' ORDER BY `id` ASC')
+      if replies:
+        [thread['posts'].append(reply) for reply in replies]
+    except:
+      pass
 
-      threads = [thread]
+    threads = [thread]
 
-    return renderTemplate('board.html', {'threads': threads, 'replythread': postid})
-  except Exception, message:
-    raise Exception, message
+  return renderTemplate('board.html', {'threads': threads, 'replythread': postid})
 
 def regenerateBoard():
   board = Settings._BOARD

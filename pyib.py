@@ -18,7 +18,6 @@ from img import *
 
 class pyib(object):
   def __init__(self, environ, start_response):
-    global db
     self.environ = environ
     self.start = start_response
     self.formdata = getFormData(self)
@@ -28,15 +27,36 @@ class pyib(object):
     try:
       self.run()
     except Exception, message:
-      self.output += renderTemplate('error.html', {'error': message, 'navbar': False})
-  
+      self.error(message)
+      
   def __iter__(self):
     self.handleResponse()
     self.start('200 OK', self.headers)
     yield self.output
+
+  def error(self, message):
+    self.output += renderTemplate('error.html', {'error': message, 'navbar': False})
   
   def run(self):
+    db.query('DELETE FROM `bans` WHERE `until` != 0 AND `until` < ' + str(timestamp()))
     if self.environ['PATH_INFO'] == '/post':
+      ban = FetchOne('SELECT * FROM `bans` WHERE `ip` = \'' + self.environ['REMOTE_ADDR'] + '\' LIMIT 1')
+      if ban:
+        message = 'You have been banned from posting on this board.<br>'
+        if ban['reason'] != '':
+          message += 'Reason: ' + ban['reason'] + '<br>'
+        else:
+          message += 'No reason was given for this ban.<br>'
+        message += 'Your ban was placed <b>' + formatTimestamp(ban['added']) + '</b>, and '
+        if ban['until'] != '0':
+          message += 'will expire <b>' + formatTimestamp(ban['until']) + '</b>.<br>'
+        else:
+          message += '<b>will not expire</b>.<br>'
+        message += 'Your IP address is <b>' + self.environ['REMOTE_ADDR'] + '</b>.'
+          
+        self.error(message)
+        return
+        
       try:
         if self.formdata['board']:
           board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '" + _mysql.escape_string(self.formdata['board']) + "' LIMIT 1")

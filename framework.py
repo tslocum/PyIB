@@ -54,6 +54,12 @@ def timestamp(t=None):
     t = datetime.datetime.now()
   return int(time.mktime(t.timetuple()))
 
+def formatTimestamp(t):
+  """
+  Format a timestamp to a readable date
+  """
+  return datetime.datetime.fromtimestamp(int(t)).strftime("%y/%m/%d(%a)%H:%M:%S")
+
 def timeTaken(time_start, time_finish):
   return str(round(time_finish - time_start, 2))
 

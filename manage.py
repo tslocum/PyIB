@@ -25,6 +25,7 @@ def manage(self, path_split):
       if valid_account:
         setCookie(self, 'pyib_manage', self.formdata['pyib_username'] + ':' + valid_account['password'], domain='THIS')
         setCookie(self, 'pyib_staff', 'yes')
+        db.query('DELETE FROM `logs` WHERE `timestamp` < ' + str(timestamp() - 604800)) # one week
       else:
         page += 'Incorrect username/password.<hr>'
   except:
@@ -75,12 +76,14 @@ def manage(self, path_split):
               regenerateBoard()
             
             page += 'Rebuilt all boards in ' + timeTaken(t1, time.time()) + ' seconds'
+            logAction(staff_account['username'], 'Rebuilt all boards')
           else:
             t1 = time.time()
             board = setBoard(board_dir)
             regenerateBoard()
             
             page += 'Rebuilt /' + board['dir'] + '/ in ' + timeTaken(t1, time.time()) + ' seconds'
+            logAction(staff_account['username'], 'Rebuilt /' + board['dir'] + '/')
       elif path_split[2] == 'modbrowse':
         board_dir = ''
         thread_id = 0
@@ -139,6 +142,7 @@ def manage(self, path_split):
                         if not ':' in self.formdata['username']:
                           db.query("UPDATE `staff` SET `username` = '" + _mysql.escape_string(self.formdata['username']) + "', `rights` = " + self.formdata['rights'] + " LIMIT 1")
                           page += 'Staff member updated.'
+                          logAction(staff_account['username'], 'Updated staff account for ' + self.formdata['username'])
                         else:
                           page += 'The character : can not be used in usernames.'
                   except:
@@ -157,6 +161,7 @@ def manage(self, path_split):
                         password = m.hexdigest()
                         db.query("INSERT INTO `staff` (`username`, `password`, `added`, `rights`) VALUES ('" + _mysql.escape_string(self.formdata['username']) + "', '" + _mysql.escape_string(password) + "', " + str(timestamp()) + ", " + self.formdata['rights'] + ")")
                         page += 'Staff member added.'
+                        logAction(staff_account['username'], 'Added staff account for ' + self.formdata['username'])
                       else:
                         page += 'The character : can not be used in usernames.'
                   else:
@@ -197,8 +202,13 @@ def manage(self, path_split):
           elif path_split[3] == 'delete_confirmed':
             try:
               action_taken = True
-              db.query('DELETE FROM `staff` WHERE `id` = ' + _mysql.escape_string(path_split[4]) + ' LIMIT 1')
-              page += 'Staff member deleted.'
+              member = FetchOne('SELECT `username` FROM `staff` WHERE `id` = ' + _mysql.escape_string(path_split[4]) + ' LIMIT 1')
+              if member:
+                db.query('DELETE FROM `staff` WHERE `id` = ' + _mysql.escape_string(path_split[4]) + ' LIMIT 1')
+                page += 'Staff member deleted.'
+                logAction(staff_account['username'], 'Deleted staff account for ' + member['username'])
+              else:
+                page += 'Unable to locate a staff account with that ID.'
             except:
               pass
               
@@ -216,6 +226,67 @@ def manage(self, path_split):
               page += 'Moderator'
             page += '</td><td><a href="' + Settings.CGI_URL + 'manage/staff/edit/' + member['id'] + '">edit</a> <a href="' + Settings.CGI_URL + '/manage/staff/delete/' + member['id'] + '">delete</a></td></tr>'
           page += '</table>'
+      elif path_split[2] == 'delete':
+        do_ban = False
+        try:
+          if self.formdata['ban'] == 'true':
+            do_ban = True
+        except:
+          pass
+        
+        board = setBoard(path_split[3])
+        post = FetchOne('SELECT `parentid`, `ip` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `id` = \'' + _mysql.escape_string(path_split[4]) + '\' LIMIT 1')
+        if not post:
+          page += 'Unable to locate a post with that ID.'
+        else:
+          deletePost(path_split[4])
+          if post['parentid'] != '0':
+            threadUpdated(post['parentid'])
+          else:
+            regenerateFrontPages()
+          
+          page += 'Post successfully deleted.'
+          logAction(staff_account['username'], 'Deleted post /' + path_split[3] + '/' + path_split[4])
+          
+          if do_ban:
+            page += '<br>Redirecting to ban page...<meta http-equiv="refresh" content="0;url=' + Settings.CGI_URL + 'manage/ban/' + post['ip'] + '">'
+      elif path_split[2] == 'ban':
+        if len(path_split) > 4:
+          board = setBoard(path_split[3])
+          post = FetchOne('SELECT `ip` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `id` = \'' + _mysql.escape_string(path_split[4]) + '\' LIMIT 1')
+          if not post:
+            page += 'Unable to locate a post with that ID.'
+          else:
+            page += '<meta http-equiv="refresh" content="0;url=' + Settings.CGI_URL + 'manage/ban/' + post['ip'] + '">'
+        else:
+          if path_split[3] != '':
+            try:
+              reason = self.formdata['reason']
+            except:
+              reason = None
+            if reason is not None:
+              ban = FetchOne('SELECT `ip` FROM `bans` WHERE `ip` = \'' + _mysql.escape_string(path_split[3]) + '\' LIMIT 1')
+              if not ban:
+                if self.formdata['seconds'] != '0':
+                  until = str(timestamp() + int(self.formdata['seconds']))
+                else:
+                  until = '0'
+                db.query("INSERT INTO `bans` (`ip`, `added`, `until`, `staff`, `reason`) VALUES ('" + _mysql.escape_string(path_split[3]) + "', " + str(timestamp()) + ", " + until + ", '" + _mysql.escape_string(staff_account['username']) + "', '" + _mysql.escape_string(self.formdata['reason']) + "')")
+                page += 'Ban successfully placed.'
+                action = 'Banned ' + path_split[3]
+                if until != '0':
+                  action += ' until ' + formatTimestamp(until)
+                else:
+                  action += ' permanently'
+                logAction(staff_account['username'], action)
+              else:
+                page += 'There is already a ban in place for that IP.'
+            else:
+              page += '<form action="' + Settings.CGI_URL + 'manage/ban/' + path_split[3] + '" name="banform" method="post">' + \
+              '<label for="reason">Reason</label> <input type="text" name="reason"><br>' + \
+              '<label for="seconds">Expire in #Seconds</label> <input type="text" name="seconds" value="0"> <a href="#" onclick="document.banform.seconds.value=\'0\';">no expiration</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'3600\';">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'604800\';">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'1209600\';">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'2592000\';">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'31536000\';">1yr</a><br>' + \
+              '<label for="submit">&nbsp;</label> <input type="submit" value="Place Ban">' + \
+              '</form>'
       elif path_split[2] == 'addboard':
         action_taken = False
         board_dir = ''
@@ -244,6 +315,7 @@ def manage(self, path_split):
                 f.close()
               regenerateFrontPages()
               page += 'Board added'
+              logAction(staff_account['username'], 'Added board /' + board['dir'] + '/')
             else:
               page += 'There was a problem while making the directories'
           else:
@@ -255,6 +327,15 @@ def manage(self, path_split):
           '<label for="name">Name</label> <input type="text" name="name"><br>' + \
           '<label for="submit">&nbsp;</label> <input type="submit" name="submit" value="Add board">' + \
           '</form>'
+      elif path_split[2] == 'logs':
+        if staff_account['rights'] != '0':
+          return
+
+        page += '<table border="1"><tr><th>Date</th><th>Staff Account</th><th>Action</th></tr>'
+        logs = FetchAll('SELECT * FROM `logs` ORDER BY `timestamp` DESC')
+        for log in logs:
+          page += '<tr><td>' + formatTimestamp(log['timestamp']) + '</td><td>' + log['staff'] + '</td><td>' + log['action'] + '</td></tr>'
+        page += '</table>'
       elif path_split[2] == 'logout':
         page += 'Logging out...<meta http-equiv="refresh" content="0;url=' + Settings.CGI_URL + 'manage">'
         setCookie(self, 'pyib_manage', '', domain='THIS')
@@ -275,8 +356,13 @@ def manage(self, path_split):
         'username': staff_account['username'],
         'rights': staff_account['rights'],
         'administrator': administrator,
-        'added': datetime.datetime.fromtimestamp(int(staff_account['added'])).strftime("%y/%m/%d(%a)%H:%M:%S"),
+        'added': formatTimestamp(staff_account['added']),
       })
     
     self.output += renderTemplate('manage.html', template_values)
+
+def logAction(staff, action):
+  global db
+  
+  db.query("INSERT INTO `logs` (`timestamp`, `staff`, `action`) VALUES (" + str(timestamp()) + ", '" + _mysql.escape_string(staff) + "\', \'" + _mysql.escape_string(action) + "\')")
 
