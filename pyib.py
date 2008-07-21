@@ -206,10 +206,12 @@ if __name__ == '__main__':
   # Psyco is not required, however it will be used if available
   try:
     import psyco
-    psyco.bind(renderTemplate)
-    psyco.bind(tenjin.Engine.render)
-    psyco.bind(tenjin.Template.render)
     psyco.bind(tenjin.helpers.to_str)
+    psyco.bind(pyib.run, 2)
+    psyco.bind(getFormData)
+    psyco.bind(setCookie)
+    psyco.bind(threadUpdated)
+    psyco.bind(processImage)
   except ImportError:
     pass
   
