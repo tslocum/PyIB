@@ -1,4 +1,12 @@
 <?py include('templates/base_top.html') ?>
+<style type="text/css">
+label {
+	font-size: 12px;
+	text-align: right;
+	width: 175px;
+	padding-right: 20px;
+}
+</style>
 <?py if validated: ?>
   <div style="text-align: center;">
     Logged in as <b><acronym title="Account created #{added}">#{username}</acronym></b> with
@@ -10,7 +18,7 @@
     Moderator
     <?py #endif ?>
     privileges<br>
-    - <a href="#{cgi_url}manage">Home</a> - <a href="#{cgi_url}manage/modbrowse">Modbrowse</a> - <a href="#{cgi_url}manage/logout">Log out</a> -
+    - <a href="#{cgi_url}manage">Home</a> - <a href="#{cgi_url}manage/modbrowse">Modbrowse</a> - <a href="#{cgi_url}manage/bans">Ban list</a> - <a href="#{cgi_url}manage/changepassword">Change password</a> - <a href="#{cgi_url}manage/logout">Log out</a> -
     <?py if administrator: ?>
     <br>
     - <a href="#{cgi_url}manage/rebuild">Rebuild board</a> - <a href="#{cgi_url}manage/addboard">Add board</a> -

@@ -1,3 +1,4 @@
+import threading
 import _mysql
 import os
 
@@ -209,7 +210,7 @@ def manage(self, path_split):
               
         if not action_taken:
           page += '<a href="' + Settings.CGI_URL + 'manage/staff/add">Add new</a><br>' + \
-          '<table border="1"><tr><th>ID</th><th>Username</th><th>Rights</th><th>&nbsp;</th></tr>'
+          '<table border="1"><tr><th>ID</th><th>Username</th><th>Rights</th><th>Last Active</th><th>&nbsp;</th></tr>'
           staff = FetchAll('SELECT * FROM `staff` ORDER BY `rights`')
           for member in staff:
             page += '<tr><td>' + member['id'] + '</td><td>' + member['username'] + '</td><td>'
@@ -219,6 +220,11 @@ def manage(self, path_split):
               page += 'Administrator'
             elif member['rights'] == '2':
               page += 'Moderator'
+            page += '</td><td>'
+            if member['lastactive'] != '0':
+              page += formatTimestamp(member['lastactive'])
+            else:
+              page += 'Never'
             page += '</td><td><a href="' + Settings.CGI_URL + 'manage/staff/edit/' + member['id'] + '">edit</a> <a href="' + Settings.CGI_URL + '/manage/staff/delete/' + member['id'] + '">delete</a></td></tr>'
           page += '</table>'
       elif path_split[2] == 'delete':
@@ -282,6 +288,41 @@ def manage(self, path_split):
               '<label for="seconds">Expire in #Seconds</label> <input type="text" name="seconds" value="0"> <a href="#" onclick="document.banform.seconds.value=\'0\';">no expiration</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'3600\';">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'604800\';">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'1209600\';">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'2592000\';">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'31536000\';">1yr</a><br>' + \
               '<label for="submit">&nbsp;</label> <input type="submit" value="Place Ban">' + \
               '</form>'
+      elif path_split[2] == 'bans':
+        bans = FetchAll('SELECT * FROM `bans` ORDER BY `added` DESC')
+        if bans:
+          page += '<table border="1"><tr><th>IP Address</th><th>Added</th><th>Expires</th><th>Placed by</th><th>Reason</th></tr>'
+          for ban in bans:
+            page += '<tr><td>' + ban['ip'] + '</td><td>' + formatTimestamp(ban['added']) + '</td><td>'
+            if ban['until'] == '0':
+              page += 'Does not expire'
+            else:
+              page += formatTimestamp(ban['until'])
+            page += '</td><td>' + ban['staff'] + '</td><td>' + ban['reason'] + '</td></tr>'
+          page += '</table>'
+      elif path_split[2] == 'changepassword':
+        form_submitted = False
+        try:
+          if self.formdata['oldpassword'] != '' and self.formdata['newpassword'] != '' and self.formdata['newpassword2'] != '':
+            form_submitted = True
+        except:
+          pass
+        if form_submitted:
+          if getMD5(self.formdata['oldpassword']) == staff_account['password']:
+            if self.formdata['newpassword'] == self.formdata['newpassword2']:
+              db.query('UPDATE `staff` SET `password` = \'' + getMD5(self.formdata['newpassword']) + '\' WHERE `id` = ' + staff_account['id'] + ' LIMIT 1')
+              page += 'Password successfully changed.  Please log out and log back in.'
+            else:
+              page += 'Passwords did not match.'
+          else:
+            page += 'Current password incorrect.'
+        else:
+          page += '<form action="' + Settings.CGI_URL + 'manage/changepassword" method="post">' + \
+          '<label for="oldpassword">Current password</label> <input type="password" name="oldpassword"><br>' + \
+          '<label for="newpassword">New password</label> <input type="password" name="newpassword"><br>' + \
+          '<label for="newpassword2">New password (confirm)</label> <input type="password" name="newpassword2"><br>' + \
+          '<label for="submit">&nbsp;</label> <input type="submit" value="Change Password">' + \
+          '</form>'
       elif path_split[2] == 'board':
         board = setBoard('old-b')
         board['settings']['anonymous'] = ''

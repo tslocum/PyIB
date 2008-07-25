@@ -41,14 +41,6 @@ def renderTemplate(template, template_values={}):
   
   if template == 'board.html':
     board = Settings._BOARD
-
-    """
-    Calculate unique user posts and store temporarily in the Settings module so
-    it doesn't get calculated more than once in a single execution
-    """
-    if Settings._UNIQUE_USER_POSTS == 0:
-      unique_user_posts = FetchOne('SELECT COUNT(DISTINCT(`ip`)) FROM `posts` WHERE `boardid` = ' + board['id'], 0)
-      Settings._UNIQUE_USER_POSTS = unique_user_posts[0]
       
     values.update({
       'board': board['dir'],
@@ -59,7 +51,7 @@ def renderTemplate(template, template_values={}):
       'tripcode_character': board['settings']['tripcode_character'],
       'postarea_extra_html_top': board['settings']['postarea_extra_html_top'],
       'postarea_extra_html_bottom': board['settings']['postarea_extra_html_bottom'],
-      'unique_user_posts': Settings._UNIQUE_USER_POSTS,
+      'unique_user_posts': board['unique_user_posts'],
     })
   
   values.update(template_values)

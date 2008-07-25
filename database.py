@@ -1,7 +1,10 @@
+import threading
 import _mysql
 from settings import Settings
 
 db = _mysql.connect(Settings.DATABASE_HOST, Settings.DATABASE_USERNAME, Settings.DATABASE_PASSWORD, Settings.DATABASE_DB)
+
+database_lock = threading.Lock()
 
 def FetchAll(query, method=1):
   global db

@@ -1,40 +1,75 @@
 import math
 import os
+import threading
+import Queue
 
 from database import *
 from template import *
 from settings import Settings
 from framework import *
 
+database_lock = threading.Lock()
+
+class RegenerateThread(threading.Thread):
+  def __init__(self, threadid, request_queue):
+    threading.Thread.__init__(self, name="RegenerateThread-%d" % (threadid,))
+    self.request_queue = request_queue
+  def run(self):
+    while 1:
+      action = self.request_queue.get()
+      if action is None:
+        break
+      if action == 'front':
+        regenerateFrontPages()
+      else:
+        regenerateThreadPage(action)
+
 def threadUpdated(postid):
   """
-  Shortcut to update front pages and thread page by passing a thread id
+  Shortcut to update front pages and thread page by passing a thread ID. Uses
+  the simple threading module to do both regenerateFrontPages() and
+  regenerateThreadPage() asynchronously
   """
-  regenerateFrontPages()
-  regenerateThreadPage(postid)
+  request_queue = Queue.Queue()
+  threads = [RegenerateThread(i, request_queue) for i in range(2)]
+  for t in threads:
+    t.start()
+
+  request_queue.put('front')
+  request_queue.put(postid)
+
+  for i in range(2):
+    request_queue.put(None)
+
+  for t in threads:
+    t.join
 
 def regenerateFrontPages():
   """
-  Regenerates index.html and #.html for each page after that according to the
-  number of live threads in the database
+  Regenerates index.html and #.html for each page after that according to the number
+  of live threads in the database
   """
   board = Settings._BOARD
   threads = []
-  
-  op_posts = FetchAll('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = 0 ORDER BY `bumped` DESC')
-  for op_post in op_posts:
-    thread = {'posts': [op_post], 'omitted': 0}
 
-    try:
-      replies = FetchAll('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + op_post['id'] + ' ORDER BY `id` DESC LIMIT ' + str(Settings.REPLIES_SHOWN_ON_FRONT_PAGE))
-      if replies:
-        if len(replies) == Settings.REPLIES_SHOWN_ON_FRONT_PAGE:
-          thread['omitted'] = (int(FetchOne('SELECT COUNT(*) FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + op_post['id'], 0)[0]) - Settings.REPLIES_SHOWN_ON_FRONT_PAGE)
-        [thread['posts'].append(reply) for reply in replies[::-1]]
-    except:
-      pass
+  database_lock.acquire()
+  try:
+    op_posts = FetchAll('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = 0 ORDER BY `bumped` DESC')
+    for op_post in op_posts:
+      thread = {'posts': [op_post], 'omitted': 0}
 
-    threads.append(thread)
+      try:
+        replies = FetchAll('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + op_post['id'] + ' ORDER BY `id` DESC LIMIT ' + str(Settings.REPLIES_SHOWN_ON_FRONT_PAGE))
+        if replies:
+          if len(replies) == Settings.REPLIES_SHOWN_ON_FRONT_PAGE:
+            thread['omitted'] = (int(FetchOne('SELECT COUNT(*) FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + op_post['id'], 0)[0]) - Settings.REPLIES_SHOWN_ON_FRONT_PAGE)
+          [thread['posts'].append(reply) for reply in replies[::-1]]
+      except:
+        pass
+
+      threads.append(thread)
+  finally:
+    database_lock.release()
 
   pages = []
   if len(op_posts) > 0:
@@ -81,30 +116,50 @@ def regenerateThreadPage(postid):
 
 def threadPage(postid):
   board = Settings._BOARD
-  
-  postid = int(postid)
-  op_post = FetchOne("SELECT * FROM `posts` WHERE `id` = " + str(postid) + " AND `boardid` = " + board['id'] + " LIMIT 1")
-  if op_post:
-    thread = {'posts': [op_post], 'omitted': 0}
 
-    try:
-      replies = FetchAll('SELECT * FROM `posts` WHERE `parentid` = ' + op_post['id'] + ' AND `boardid` = ' + board['id'] + ' ORDER BY `id` ASC')
-      if replies:
-        [thread['posts'].append(reply) for reply in replies]
-    except:
-      pass
+  database_lock.acquire()
+  try:
+    postid = int(postid)
+    op_post = FetchOne("SELECT * FROM `posts` WHERE `id` = " + str(postid) + " AND `boardid` = " + board['id'] + " LIMIT 1")
+    if op_post:
+      thread = {'posts': [op_post], 'omitted': 0}
 
-    threads = [thread]
+      try:
+        replies = FetchAll('SELECT * FROM `posts` WHERE `parentid` = ' + op_post['id'] + ' AND `boardid` = ' + board['id'] + ' ORDER BY `id` ASC')
+        if replies:
+          [thread['posts'].append(reply) for reply in replies]
+      except:
+        pass
+
+      threads = [thread]
+  finally:
+    database_lock.release()
 
   return renderTemplate('board.html', {'threads': threads, 'replythread': postid})
 
 def regenerateBoard():
+  """
+  Update front pages and every thread res HTML page
+  """
   board = Settings._BOARD
   
   op_posts = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = 0')
-  for op_post in op_posts:
-    regenerateThreadPage(op_post['id'])
-  regenerateFrontPages()
+
+  request_queue = Queue.Queue()
+  threads = [RegenerateThread(i, request_queue) for i in range(Settings.MAX_PROGRAM_THREADS)]
+  for t in threads:
+    t.start()
+
+  request_queue.put('front')
+
+  for post in op_posts:
+    request_queue.put(post['id'])
+
+  for i in range(Settings.MAX_PROGRAM_THREADS):
+    request_queue.put(None)
+
+  for t in threads:
+    t.join()
   
 def deletePost(postid):
   """

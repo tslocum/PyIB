@@ -5,6 +5,7 @@ class Settings(object):
   HOME_URL = 'http://n7c.org/'
   BOARDS_URL = 'http://img.n7c.org/'
   CGI_URL = 'http://cgi.n7c.org/' # Path to folder containing the script
+  MAX_PROGRAM_THREADS = 10 # Maximum threads this Python application can start (must be 2 or greater)
   
   BANNER_URL = 'http://n7c.org/banners/banner.php'
   BANNER_WIDTH = 300
@@ -33,5 +34,4 @@ class Settings(object):
   
   # Non-editable configuration (beginning with an underscore) follows
   _BOARD = None
-  _UNIQUE_USER_POSTS = 0
   _MODBROWSE = False

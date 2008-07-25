@@ -33,9 +33,14 @@ def setBoard(dir):
   if board['configuration'] != '':
     configuration = pickle.loads(board['configuration'])
     board['settings'].update(configuration)
+
+  """
+  Calculate unique user posts and keep it in the board variable so it doesn't
+  get recalculated during this execution
+  """
+  board['unique_user_posts'] = FetchOne('SELECT COUNT(DISTINCT(`ip`)) FROM `posts` WHERE `boardid` = ' + board['id'], 0)[0]
     
   Settings._BOARD = board
-  Settings._UNIQUE_USER_POSTS = 0
   
   return board
   
