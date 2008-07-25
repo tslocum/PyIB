@@ -2,14 +2,13 @@
 <?py if replythread: ?>
     &#91;<a href="#{boards_url}#{board}/">Return</a>&#93;<div class="replymode">Posting mode: Reply</div>
 <?py #endif ?>
-    <div class="postarea">
+    <div class="postarea">#{postarea_extra_html_top}
       <form name="postform" id="postform" action="#{cgi_url}post" method="post" enctype="multipart/form-data">
       <input type="hidden" name="board" value="#{board}">
 <?py if replythread: ?>
       <input type="hidden" name="parent" value="#{replythread}">
 <?py #endif ?>
       <input type="hidden" name="MAX_FILE_SIZE" value="#{MAX_FILE_SIZE}">
-      <p>
       <table class="postform">
         <tbody>
 <?py if not forced_anonymous: ?>
@@ -24,7 +23,7 @@
 <?py #endif ?>
           <tr>
             <td class="postblock">
-              Email
+              E-mail
             </td>
             <td>
               <input type="text" name="email" size="28" maxlength="75" accesskey="e">
@@ -82,19 +81,31 @@
                 <li>Supported file types are: GIF, JPG, PNG</li>
                 <li>Maximum file size allowed is #{maxsize_display}.</li>
                 <li>Images greater than #{maxdimensions}x#{maxdimensions} pixels will be thumbnailed.</li>
-                <li>Currently #{unique_user_posts} unique user posts.<!-- <a href="/catalog.html">View catalog</a>--></li>
+                <li>Currently #{unique_user_posts} unique user posts.<!-- <a href="#{boards_url}{#board}/catalog.html">View catalog</a>--></li>
               </ul>
             </td>
           </tr>
         </tbody>
       </table>
       </form>
-    </div>
+      <script type="text/javascript"><!--
+      google_ad_client = "pub-6158454562572132";
+      /* n7c Banner */
+      google_ad_slot = "6814560090";
+      google_ad_width = 468;
+      google_ad_height = 60;
+      //-->
+      </script>
+      <script type="text/javascript"
+      src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+      </script>
+    #{postarea_extra_html_bottom}</div>
     <script type="text/javascript"><!--
       set_inputs("postform");
     //--></script>
     <hr>
-    <form id="delform" action="/delete" method="post">
+    <form id="delform" action="#{cgi_url}delete" method="post">
+    <input type="hidden" name="board" value="#{board}">
 <?py if threads: ?>
   <?py for thread in threads: ?>
     <?py for post in thread['posts']: ?>
@@ -103,11 +114,11 @@
       <tbody>
       <tr>
       <td class="doubledash">
-        &gt;&gt;
+        ¨
       </td>
       <td class="reply" id="reply#{post['id']}">
       <?py elif post['file'] != '': ?>
-      <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
+      <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>&ndash;(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
       <br>
       <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
         <span id="thumb#{post['id']}"><img src="#{boards_url}#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
@@ -148,7 +159,7 @@
         <span class="dnb|#{board}|#{post['id']}|n"></span>
           <?py if post['file'] != '': ?>
       <br>
-      <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>-(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
+      <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>&ndash;(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
       <br>
       <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
         <span id="thumb#{post['id']}"><img src="#{boards_url}#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
@@ -190,7 +201,7 @@
       <tbody>
         <tr>
           <td>
-            Delete Post [<input type="checkbox" name="imageonly" id="imageonly" checked><label for="imageonly">Image Only</label>]<br>Password <input type="password" name="password" size="8">&nbsp;<input name="deletepost" value="Delete" type="submit">
+            Delete Post [<input type="checkbox" name="imageonly" id="imageonly"><label for="imageonly">Image Only</label>]<br>Password <input type="password" name="password" size="8">&nbsp;<input name="deletepost" value="Delete" type="submit">
           </td>
         </tr>
       </tbody>

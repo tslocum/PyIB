@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-
 import struct
 import math
-import md5
 import random
 import os
 from StringIO import StringIO
@@ -66,9 +63,12 @@ def processImage(post, data, t):
       post['thumb_height'] = file_thumb_height
       
       post['file_size'] = len(data)
-      post['file_size_formatted'] = str(long(post['file_size'] / 1024)) + 'KB'
+      if Settings.IMAGE_SIZE_UNIT == 'B':
+        post['file_size_formatted'] = str(post['file_size']) + ' B'
+      else:
+        post['file_size_formatted'] = str(long(post['file_size'] / 1024)) + ' KB'
   
-      post['file_hex'] = getFileHex(data)
+      post['file_hex'] = getMD5(data)
 
       return post
     else:
@@ -77,63 +77,63 @@ def processImage(post, data, t):
     raise Exception, 'Invalid file type'
 
 def getImageInfo(data):
-    data = str(data)
-    size = len(data)
-    height = -1
-    width = -1
-    content_type = ''
+  data = str(data)
+  size = len(data)
+  height = -1
+  width = -1
+  content_type = ''
 
-    # handle GIFs
-    if (size >= 10) and data[:6] in ('GIF87a', 'GIF89a'):
-        # Check to see if content_type is correct
-        content_type = 'image/gif'
-        w, h = struct.unpack("<HH", data[6:10])
-        width = int(w)
-        height = int(h)
+  # handle GIFs
+  if (size >= 10) and data[:6] in ('GIF87a', 'GIF89a'):
+    # Check to see if content_type is correct
+    content_type = 'image/gif'
+    w, h = struct.unpack("<HH", data[6:10])
+    width = int(w)
+    height = int(h)
 
-    # See PNG 2. Edition spec (http://www.w3.org/TR/PNG/)
-    # Bytes 0-7 are below, 4-byte chunk length, then 'IHDR'
-    # and finally the 4-byte width, height
-    elif ((size >= 24) and data.startswith('\211PNG\r\n\032\n')
-          and (data[12:16] == 'IHDR')):
-        content_type = 'image/png'
-        w, h = struct.unpack(">LL", data[16:24])
-        width = int(w)
-        height = int(h)
+  # See PNG 2. Edition spec (http://www.w3.org/TR/PNG/)
+  # Bytes 0-7 are below, 4-byte chunk length, then 'IHDR'
+  # and finally the 4-byte width, height
+  elif ((size >= 24) and data.startswith('\211PNG\r\n\032\n')
+        and (data[12:16] == 'IHDR')):
+    content_type = 'image/png'
+    w, h = struct.unpack(">LL", data[16:24])
+    width = int(w)
+    height = int(h)
 
-    # Maybe this is for an older PNG version.
-    elif (size >= 16) and data.startswith('\211PNG\r\n\032\n'):
-        # Check to see if we have the right content type
-        content_type = 'image/png'
-        w, h = struct.unpack(">LL", data[8:16])
-        width = int(w)
-        height = int(h)
+  # Maybe this is for an older PNG version.
+  elif (size >= 16) and data.startswith('\211PNG\r\n\032\n'):
+    # Check to see if we have the right content type
+    content_type = 'image/png'
+    w, h = struct.unpack(">LL", data[8:16])
+    width = int(w)
+    height = int(h)
 
-    # handle JPEGs
-    elif (size >= 2) and data.startswith('\377\330'):
-        content_type = 'image/jpeg'
-        jpeg = StringIO(data)
-        jpeg.read(2)
+  # handle JPEGs
+  elif (size >= 2) and data.startswith('\377\330'):
+    content_type = 'image/jpeg'
+    jpeg = StringIO(data)
+    jpeg.read(2)
+    b = jpeg.read(1)
+    try:
+      while (b and ord(b) != 0xDA):
+        while (ord(b) != 0xFF): b = jpeg.read
+        while (ord(b) == 0xFF): b = jpeg.read(1)
+        if (ord(b) >= 0xC0 and ord(b) <= 0xC3):
+          jpeg.read(3)
+          h, w = struct.unpack(">HH", jpeg.read(4))
+          break
+        else:
+          jpeg.read(int(struct.unpack(">H", jpeg.read(2))[0])-2)
         b = jpeg.read(1)
-        try:
-            while (b and ord(b) != 0xDA):
-                while (ord(b) != 0xFF): b = jpeg.read
-                while (ord(b) == 0xFF): b = jpeg.read(1)
-                if (ord(b) >= 0xC0 and ord(b) <= 0xC3):
-                    jpeg.read(3)
-                    h, w = struct.unpack(">HH", jpeg.read(4))
-                    break
-                else:
-                    jpeg.read(int(struct.unpack(">H", jpeg.read(2))[0])-2)
-                b = jpeg.read(1)
-            width = int(w)
-            height = int(h)
-        except struct.error:
-            pass
-        except ValueError:
-            pass
+      width = int(w)
+      height = int(h)
+    except struct.error:
+      pass
+    except ValueError:
+      pass
 
-    return content_type, width, height
+  return content_type, width, height
 
 def getThumbDimensions(width, height, maxsize):
   """
@@ -155,15 +155,6 @@ def getThumbDimensions(width, height, maxsize):
   
   return int(thumb_width), int(thumb_height)
 
-def getFileHex(data):
-  """
-  Calculate MD5 of file using <data>
-  """
-  m = md5.new()
-  m.update(data)
-  
-  return m.hexdigest()
-
 def checkFileNotDuplicate(data):
   """
   Check that the file <data> does not already exist in a live post on the
@@ -171,7 +162,7 @@ def checkFileNotDuplicate(data):
   """
   board = Settings._BOARD
   
-  file_hex = getFileHex(data)
+  file_hex = getMD5(data)
   post = FetchOne("SELECT `id`, `parentid` FROM `posts` WHERE `file_hex` = '" + file_hex + "' AND `boardid` = " + board['id'] + " LIMIT 1")
   if post:
     if int(post['parentid']) != 0:

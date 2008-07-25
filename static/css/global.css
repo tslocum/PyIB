@@ -12,10 +12,6 @@ form {
 	margin-bottom: 0px;
 }
 
-form .trap {
-	display:none;
-}
-
 .postarea {
 	text-align: center;
 }
@@ -73,35 +69,5 @@ form .trap {
  	vertical-align: top;
 	clear: both;
 	float: left;
-}
-
-.replypage .replylink {
-	display: none;
-}
-
-.pagelist {
-	max-width: 600px;
-}
-
-.admin {
-	color: #800080;
-	font-weight: normal;
-}
-
-.mod {
-	color: #FF0000;
-	font-weight: normal;
-}
-
-.vip {
-	color: #336600;
-	font-weight: normal;
-}
-
-.managemenu {
-  background: #EEAA88;
-	color: #800000;
-	padding: 4px;
-	clear: both;
-	-moz-border-radius: 4px;
+	font-size: 28px;
 }

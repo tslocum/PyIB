@@ -27,12 +27,13 @@ def renderTemplate(template, template_values={}):
     'forced_anonymous': None,
     'disable_subject': None,
     'tripcode_character': None,
+    'default_style': Settings.DEFAULT_STYLE,
     'MAX_FILE_SIZE': Settings.MAX_IMAGE_SIZE_BYTES,
     'maxsize_display': Settings.MAX_IMAGE_SIZE_DISPLAY,
     'maxdimensions': Settings.MAX_DIMENSION_FOR_OP_IMAGE,
     'unique_user_posts': None,
     'page_navigator': '',
-    'navbar': True,
+    'navbar': Settings.SHOW_NAVBAR,
     'modbrowse': Settings._MODBROWSE,
   }
   
@@ -56,6 +57,8 @@ def renderTemplate(template, template_values={}):
       'forced_anonymous': board['settings']['forced_anonymous'],
       'disable_subject': board['settings']['disable_subject'],
       'tripcode_character': board['settings']['tripcode_character'],
+      'postarea_extra_html_top': board['settings']['postarea_extra_html_top'],
+      'postarea_extra_html_bottom': board['settings']['postarea_extra_html_bottom'],
       'unique_user_posts': Settings._UNIQUE_USER_POSTS,
     })
   

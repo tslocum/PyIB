@@ -18,6 +18,7 @@ from img import *
 
 class pyib(object):
   def __init__(self, environ, start_response):
+    global _DEBUG
     self.environ = environ
     self.start = start_response
     self.formdata = getFormData(self)
@@ -36,7 +37,7 @@ class pyib(object):
 
   def error(self, message):
     self.output += renderTemplate('error.html', {'error': message, 'navbar': False})
-  
+    
   def run(self):
     db.query('DELETE FROM `bans` WHERE `until` != 0 AND `until` < ' + str(timestamp()))
     if self.environ['PATH_INFO'] == '/post':
@@ -164,18 +165,18 @@ class pyib(object):
         if not post['message']:
           raise Exception, 'Please upload an image, or enter a message'
   
-      post['timestamp_formatted'] = t.strftime("%y/%m/%d(%a)%H:%M:%S")
+      post['timestamp_formatted'] = formatDate(t)
       post['nameblock'] = nameBlock(post['name'], post['tripcode'], post['email'], post['timestamp_formatted'])
       
       db.query("INSERT INTO posts " \
                "(`boardid`, `parentid`, `name`, `tripcode`, `email`, " \
-               "`nameblock`, `subject`, `message`, `file`, `file_hex`, " \
+               "`nameblock`, `subject`, `message`, `password`, `file`, `file_hex`, " \
                "`file_mime`, `file_original`, `file_size`, `file_size_formatted`, `image_width`, " \
                "`image_height`, `thumb`, `thumb_width`, `thumb_height`, `thumb_catalog_width`, " \
                "`thumb_catalog_height`, `ip`, `timestamp_formatted`, `timestamp`, `bumped`) " \
                "VALUES " + \
                "(" + board['id']+ ", " + str(post['parent']) + ", '" + _mysql.escape_string(post['name']) + "', '" + _mysql.escape_string(post['tripcode']) + "', '" + _mysql.escape_string(post['email']) + "', " \
-               "'" + _mysql.escape_string(post['nameblock']) + "', '" + _mysql.escape_string(post['subject']) + "', '" + _mysql.escape_string(post['message']) + "', '" + _mysql.escape_string(post['file']) + "', '" + _mysql.escape_string(post['file_hex']) + "', " \
+               "'" + _mysql.escape_string(post['nameblock']) + "', '" + _mysql.escape_string(post['subject']) + "', '" + _mysql.escape_string(post['message']) + "', '" + _mysql.escape_string(post['password']) + "', '" + _mysql.escape_string(post['file']) + "', '" + _mysql.escape_string(post['file_hex']) + "', " \
                "'" + _mysql.escape_string(post['file_mime']) + "', '" + _mysql.escape_string(post['file_original']) + "', '" + _mysql.escape_string(str(post['file_size'])) + "', '" + _mysql.escape_string(post['file_size_formatted']) + "', '" + _mysql.escape_string(str(post['image_width'])) + "', " \
                "'" + _mysql.escape_string(str(post['image_height'])) + "', '" + _mysql.escape_string(post['thumb']) + "', '" + _mysql.escape_string(str(post['thumb_width'])) + "', '" + _mysql.escape_string(str(post['thumb_height'])) + "', '" + _mysql.escape_string(str(post['thumb_catalog_width'])) + "', " \
                "'" + _mysql.escape_string(str(post['thumb_catalog_height'])) + "', '" + post['ip'] + "', '" + post['timestamp_formatted'] + "', " + str(timestamp(t)) + ", " + str(timestamp(t)) + ")")
@@ -199,7 +200,59 @@ class pyib(object):
       caught = False
   
       if len(path_split) > 1:
-        if path_split[1] == 'manage':
+        if path_split[1] == 'delete':
+          caught = True
+          board = None
+          delete_id = 0
+          imageonly = False
+          try:
+            if self.formdata['board']:
+              board = setBoard(self.formdata['board'])
+          except:
+            pass
+          if board:
+            if self.formdata['password'] != '':
+              try:
+                delete_id = int(self.formdata['delete'])
+              except:
+                pass
+              if delete_id > 0:
+                post = FetchOne('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `id` = ' + str(delete_id) + ' LIMIT 1')
+                if post:
+                  if post['password'] == self.formdata['password']:
+                    try:
+                      if self.formdata['imageonly']:
+                        imageonly = True
+                    except:
+                      pass
+                    if imageonly:
+                      if post['file'] != '':
+                        if post['message'] != '':
+                          deleteFile(post)
+                          db.query('UPDATE `posts` SET `file` = \'\', `file_hex` = \'\' WHERE `boardid` = ' + board['id'] + ' AND `id` = ' + str(delete_id) + ' LIMIT 1')
+                        else:
+                          deletePost(delete_id)
+                    else:
+                      deletePost(delete_id)
+                    if post['parentid'] == '0':
+                      regenerateFrontPage()
+                    else:
+                      threadUpdated(post['parentid'])
+                    if imageonly:
+                      self.output += 'File successfully deleted from post.'
+                    else:
+                      self.output += 'Post successfully deleted.'
+                  else:
+                    self.error('Incorrect password.')
+                else:
+                  self.error('Unable to locate a post with that ID.  The post may have already been deleted.')
+              else:
+                self.error('Unable to detect selected post.  You may have not checked a checkbox, or checked more than one checkbox.')
+            else:
+              self.error('Please enter a password.')
+          else:
+            self.error('Invalid board supplied.')
+        elif path_split[1] == 'manage':
           caught = True
           manage.manage(self, path_split)
           

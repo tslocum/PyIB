@@ -1,6 +1,7 @@
 import cgi
 import datetime
 import time
+import md5
 import pickle
 import _mysql
 from Cookie import SimpleCookie
@@ -25,6 +26,8 @@ def setBoard(dir):
     'forced_anonymous': False,
     'disable_subject': False,
     'tripcode_character': '!',
+    'postarea_extra_html_top': '',
+    'postarea_extra_html_bottom': '',
   }
 
   if board['configuration'] != '':
@@ -54,11 +57,19 @@ def timestamp(t=None):
     t = datetime.datetime.now()
   return int(time.mktime(t.timetuple()))
 
+def formatDate(t=None):
+  """
+  Format a datetime to a readable date
+  """
+  if not t:
+    t = datetime.datetime.now()
+  return t.strftime("%y/%m/%d(%a)%H:%M:%S")
+
 def formatTimestamp(t):
   """
   Format a timestamp to a readable date
   """
-  return datetime.datetime.fromtimestamp(int(t)).strftime("%y/%m/%d(%a)%H:%M:%S")
+  return formatDate(datetime.datetime.fromtimestamp(int(t)))
 
 def timeTaken(time_start, time_finish):
   return str(round(time_finish - time_start, 2))
@@ -82,16 +93,13 @@ def getFormData(self):
   post_form = (new_input, wsgi_input, fs)
   self.environ['wsgi.post_form'] = post_form
   self.environ['wsgi.input'] = new_input
-  
-  """
-  Pre-"list comprehension" code (benchmarked as being five times slower):
+
   formdata = {}
-  fs = dict(fs)
-  for key in fs:
-    formdata[key] = str(fs[key].value)
-  """
-  
-  formdata = dict([(key, fs[key].value) for key in dict(fs)])
+  for key in dict(fs):
+    try:
+      formdata.update({key: fs[key].value})
+    except:
+      pass
   
   #import sys
   #sys.exit(repr(formdata))
@@ -102,6 +110,12 @@ class InputProcessed(object):
   def read(self):
     raise EOFError('The wsgi.input stream has already been consumed')
   readline = readlines = __iter__ = read
+
+def getMD5(data):
+  m = md5.new()
+  m.update(data)
+  
+  return m.hexdigest()
   
 def setCookie(self, key, value='', max_age=None, expires=None, path='/', domain=None, secure=None):
   """

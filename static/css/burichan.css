@@ -120,7 +120,7 @@ a:hover {
 	font-size:12px;
 	font-family:sans-serif;
 	text-decoration:underline;
-	padding-left:3em;
+	/*padding-left:3em;*/
 }
 .filetitle {
 	background:inherit;

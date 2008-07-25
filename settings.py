@@ -21,6 +21,10 @@ class Settings(object):
   SECONDS_BETWEEN_NEW_THREADS = 30
   SECONDS_BETWEEN_REPLIES = 10
 
+  SHOW_NAVBAR = False # If you set this to True, edit navbar.html
+  DEFAULT_STYLE = 'Futaba' # Futaba or Burichan
+  
+  IMAGE_SIZE_UNIT = 'B' # B or KB
   MAX_IMAGE_SIZE_BYTES = 1048576
   MAX_IMAGE_SIZE_DISPLAY = '1 MB'
   MAX_DIMENSION_FOR_OP_IMAGE = 200

@@ -1,4 +1,3 @@
-import md5
 import _mysql
 import os
 
@@ -17,9 +16,7 @@ def manage(self, path_split):
   
   try:
     if self.formdata['pyib_username'] and self.formdata['pyib_password']:
-      m = md5.new()
-      m.update(self.formdata['pyib_password'])
-      password = m.hexdigest()
+      password = getMD5(self.formdata['pyib_password'])
       
       valid_account = FetchOne("SELECT * FROM `staff` WHERE `username` = '" + _mysql.escape_string(self.formdata['pyib_username']) + "' AND `password` = '" + _mysql.escape_string(password) + "' LIMIT 1")
       if valid_account:
@@ -156,9 +153,7 @@ def manage(self, path_split):
                     if self.formdata['rights'] in ['0', '1', '2']:
                       action_taken = True
                       if not ':' in self.formdata['username']:
-                        m = md5.new()
-                        m.update(self.formdata['password'])
-                        password = m.hexdigest()
+                        password = getMD5(self.formdata['password'])
                         db.query("INSERT INTO `staff` (`username`, `password`, `added`, `rights`) VALUES ('" + _mysql.escape_string(self.formdata['username']) + "', '" + _mysql.escape_string(password) + "', " + str(timestamp()) + ", " + self.formdata['rights'] + ")")
                         page += 'Staff member added.'
                         logAction(staff_account['username'], 'Added staff account for ' + self.formdata['username'])
@@ -287,6 +282,13 @@ def manage(self, path_split):
               '<label for="seconds">Expire in #Seconds</label> <input type="text" name="seconds" value="0"> <a href="#" onclick="document.banform.seconds.value=\'0\';">no expiration</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'3600\';">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'604800\';">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'1209600\';">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'2592000\';">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'31536000\';">1yr</a><br>' + \
               '<label for="submit">&nbsp;</label> <input type="submit" value="Place Ban">' + \
               '</form>'
+      elif path_split[2] == 'board':
+        board = setBoard('old-b')
+        board['settings']['anonymous'] = ''
+        board['settings']['forced_anonymous'] = True
+        board['settings']['disable_subject'] = True
+        board['settings']['postarea_extra_html_top'] = '<small>This is an experiment in creating a /b/ with the feel of a few years ago, by using rule enforcement.<br>If you posted on /b/ before the spread, you\'ll know what is bannable and what isn\'t.<br>If you post like a new user, you will be banned.</small><br>'
+        updateBoardSettings()
       elif path_split[2] == 'addboard':
         action_taken = False
         board_dir = ''
