@@ -8,8 +8,6 @@ from template import *
 from settings import Settings
 from framework import *
 
-database_lock = threading.Lock()
-
 class RegenerateThread(threading.Thread):
   def __init__(self, threadid, request_queue):
     threading.Thread.__init__(self, name="RegenerateThread-%d" % (threadid,))

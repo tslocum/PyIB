@@ -1,4 +1,3 @@
-import threading
 import _mysql
 import os
 
