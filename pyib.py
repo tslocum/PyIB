@@ -70,13 +70,14 @@ class pyib(object):
         raise Exception, 'Invalid board supplied'
   
       post = {
+        'boardid': board['id'],
+        'parentid': 0,
         'name': '',
         'tripcode': '',
         'email': '',
         'subject': '',
         'message': '',
         'password': '',
-        'parent': 0,
         'file': '',
         'file_hex': '',
         'file_mime': '',
@@ -91,6 +92,9 @@ class pyib(object):
         'thumb_catalog_width': 0,
         'thumb_catalog_height': 0,
         'ip': self.environ['REMOTE_ADDR'],
+        'timestamp_formatted': '',
+        'timestamp': 0,
+        'bumped': 0,
       }
       
       try:
@@ -98,7 +102,7 @@ class pyib(object):
         try:
           parent_post = FetchOne('SELECT COUNT(*) FROM `posts` WHERE `id` = ' + parent + ' AND `parentid` = 0 AND `boardid` = ' + board['id'] + ' LIMIT 1', 0)
           if int(parent_post[0]) > 0:
-            post['parent'] = parent
+            post['parentid'] = parent
           else:
             raise Exception
         except:
@@ -129,7 +133,7 @@ class pyib(object):
         pass
       
       try:
-        if not board['settings']['disable_subject'] and not post['parent']:
+        if not board['settings']['disable_subject'] and not post['parentid']:
           post['subject'] = cgi.escape(self.formdata['subject']).strip()
       except:
         pass
@@ -137,8 +141,8 @@ class pyib(object):
       try:
         post['message'] = clickableURLs(cgi.escape(self.formdata['message']).rstrip()[0:8000])
         post['message'] = checkAllowedHTML(post['message'])
-        if post['parent'] != 0:
-          post['message'] = checkRefLinks(post['message'], post['parent'])
+        if post['parentid'] != 0:
+          post['message'] = checkRefLinks(post['message'], post['parentid'])
         post['message'] = checkQuotes(post['message'])
         post['message'] = post['message'].replace("\n", '<br>')
       except:
@@ -160,38 +164,34 @@ class pyib(object):
         raise Exception, 'Unable to process image:\n\n' + str(message)
   
       if not post['file']:
-        if not post['parent']:
+        if not post['parentid']:
           raise Exception, 'Please upload an image to create a new thread'
         if not post['message']:
           raise Exception, 'Please upload an image, or enter a message'
   
       post['timestamp_formatted'] = formatDate(t)
+      post['timestamp'] = timestamp(t)
+      post['bumped'] = timestamp(t)
       post['nameblock'] = nameBlock(post['name'], post['tripcode'], post['email'], post['timestamp_formatted'])
+
+      post_values = [_mysql.escape_string(str(value)) for key, value in post.iteritems()]
       
-      db.query("INSERT INTO posts " \
-               "(`boardid`, `parentid`, `name`, `tripcode`, `email`, " \
-               "`nameblock`, `subject`, `message`, `password`, `file`, `file_hex`, " \
-               "`file_mime`, `file_original`, `file_size`, `file_size_formatted`, `image_width`, " \
-               "`image_height`, `thumb`, `thumb_width`, `thumb_height`, `thumb_catalog_width`, " \
-               "`thumb_catalog_height`, `ip`, `timestamp_formatted`, `timestamp`, `bumped`) " \
-               "VALUES " + \
-               "(" + board['id']+ ", " + str(post['parent']) + ", '" + _mysql.escape_string(post['name']) + "', '" + _mysql.escape_string(post['tripcode']) + "', '" + _mysql.escape_string(post['email']) + "', " \
-               "'" + _mysql.escape_string(post['nameblock']) + "', '" + _mysql.escape_string(post['subject']) + "', '" + _mysql.escape_string(post['message']) + "', '" + _mysql.escape_string(post['password']) + "', '" + _mysql.escape_string(post['file']) + "', '" + _mysql.escape_string(post['file_hex']) + "', " \
-               "'" + _mysql.escape_string(post['file_mime']) + "', '" + _mysql.escape_string(post['file_original']) + "', '" + _mysql.escape_string(str(post['file_size'])) + "', '" + _mysql.escape_string(post['file_size_formatted']) + "', '" + _mysql.escape_string(str(post['image_width'])) + "', " \
-               "'" + _mysql.escape_string(str(post['image_height'])) + "', '" + _mysql.escape_string(post['thumb']) + "', '" + _mysql.escape_string(str(post['thumb_width'])) + "', '" + _mysql.escape_string(str(post['thumb_height'])) + "', '" + _mysql.escape_string(str(post['thumb_catalog_width'])) + "', " \
-               "'" + _mysql.escape_string(str(post['thumb_catalog_height'])) + "', '" + post['ip'] + "', '" + post['timestamp_formatted'] + "', " + str(timestamp(t)) + ", " + str(timestamp(t)) + ")")
-  
+      db.query('INSERT INTO `posts` (`%s`) VALUES (\'%s\')' % (
+        '`, `'.join(post.keys()),
+        '\', \''.join(post_values)
+      ))
+        
       postid = db.insert_id()
   
       trimThreads()
         
-      if post['parent']:
+      if post['parentid']:
         if post['email'].lower() != 'sage':
-          db.query('UPDATE `posts` SET bumped = ' + str(timestamp(t)) + ' WHERE `id` = ' + str(post['parent']) + ' AND `boardid` = ' + board['id'] + ' LIMIT 1')
+          db.query('UPDATE `posts` SET bumped = ' + str(timestamp(t)) + ' WHERE `id` = ' + str(post['parentid']) + ' AND `boardid` = ' + board['id'] + ' LIMIT 1')
           setCookie(self, 'pyib_email', self.formdata['email'])
           
-        threadUpdated(post['parent'])
-        self.output += '<meta http-equiv="refresh" content="0;url=' + Settings.BOARDS_URL + board['dir'] + '/res/' + str(post['parent']) + '.html">--&gt; --&gt; --&gt;'
+        threadUpdated(post['parentid'])
+        self.output += '<meta http-equiv="refresh" content="0;url=' + Settings.BOARDS_URL + board['dir'] + '/res/' + str(post['parentid']) + '.html">--&gt; --&gt; --&gt;'
       else:
         threadUpdated(postid)
         self.output += '<meta http-equiv="refresh" content="0;url=' + Settings.BOARDS_URL + board['dir'] + '/">--&gt; --&gt; --&gt;'

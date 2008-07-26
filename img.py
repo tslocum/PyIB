@@ -40,7 +40,7 @@ def processImage(post, data, t):
       finally:
         f.close()
   
-      if post['parent'] == 0:
+      if post['parentid'] == 0:
         maxsize = Settings.MAX_DIMENSION_FOR_OP_IMAGE
       else:
         maxsize = Settings.MAX_DIMENSION_FOR_REPLY_IMAGE

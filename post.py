@@ -250,7 +250,7 @@ def pageNavigator(page_num, page_count):
   return page_navigator
 
 def checkNotFlooding(post):
-  if post['parent'] == 0:
+  if post['parentid'] == 0:
     floodlimit = Settings.SECONDS_BETWEEN_NEW_THREADS
   else:
     floodlimit = Settings.SECONDS_BETWEEN_REPLIES
