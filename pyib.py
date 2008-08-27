@@ -16,6 +16,8 @@ from formatting import *
 from post import *
 from img import *
 
+_DEBUG = True
+
 class pyib(object):
   def __init__(self, environ, start_response):
     global _DEBUG
@@ -25,10 +27,13 @@ class pyib(object):
     self.output = ''
     self.handleRequest()
 
-    try:
+    if _DEBUG:
       self.run()
-    except Exception, message:
-      self.error(message)
+    else:
+      try:
+        self.run()
+      except Exception, message:
+        self.error(message)
       
   def __iter__(self):
     self.handleResponse()

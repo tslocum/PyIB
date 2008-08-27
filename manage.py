@@ -61,9 +61,7 @@ def manage(self, path_split):
         
         if board_dir == '':
           page += 'Please click on the board you wish to rebuild:<br><br><a href="' + Settings.CGI_URL + 'manage/rebuild/!ALL">Rebuild all boards</b></a><br>'
-          boards = FetchAll('SELECT * FROM `boards` ORDER BY `dir`')
-          for board in boards:
-            page += '<br><a href="' + Settings.CGI_URL + 'manage/rebuild/' + board['dir'] + '">/' + board['dir'] + '/ - ' + board['name'] + '</a>'
+          page += boardlist('rebuild')
         else:
           if board_dir == '!ALL':
             t1 = time.time()
@@ -343,13 +341,59 @@ def manage(self, path_split):
           '<label for="submit">&nbsp;</label> <input type="submit" value="Change Password">' + \
           '</form>'
       elif path_split[2] == 'board':
-        board = setBoard('old-b')
-        board['settings']['anonymous'] = ''
-        board['settings']['forced_anonymous'] = True
-        board['settings']['disable_subject'] = True
-        board['settings']['postarea_extra_html_top'] = '<small>This is an experiment in creating a /b/ with the feel of a few years ago, by using rule enforcement.<br>If you posted on /b/ before the spread, you\'ll know what is bannable and what isn\'t.<br>If you post like a new user, you will be banned.</small><br>'
-        updateBoardSettings()
+        if not administrator:
+          return
+        
+        if len(path_split) > 3:
+          board = setBoard(path_split[3])
+          form_submitted = False
+          try:
+            if self.formdata['name'] != '':
+              form_submitted = True
+          except:
+            pass
+          if form_submitted:
+            if self.formdata['name'] != board['name']:
+              db.query('UPDATE `boards` SET `name` = \'' + _mysql.escape_string(self.formdata['name']) + '\' WHERE `id` = ' + board['id'] + ' LIMIT 1')
+            board['settings']['anonymous'] = self.formdata['anonymous']
+            if self.formdata['forced_anonymous'] == '0':
+              board['settings']['forced_anonymous'] = False
+            else:
+              board['settings']['forced_anonymous'] = True
+            if self.formdata['disable_subject'] == '0':
+              board['settings']['disable_subject'] = False
+            else:
+              board['settings']['disable_subject'] = True
+            board['settings']['postarea_extra_html_top'] = self.formdata['postarea_extra_html_top']
+            updateBoardSettings()
+            page += 'Board options successfully updated.'
+          else:
+            page += '<form action="' + Settings.CGI_URL + 'manage/board/' + board['dir'] + '" method="post">' + \
+            '<label for="name">Name</label> <input type="text" name="name" value="' + board['name'] + '"><br>' + \
+            '<label for="anonymous">Anonymous</label> <input type="text" name="anonymous" value="' + board['settings']['anonymous'] + '"><br>' + \
+            '<label for="forced_anonymous">Forced anonymous</label> <input type="radio" name="forced_anonymous" value="0"'
+            if not board['settings']['forced_anonymous']:
+              page += ' checked'
+            page += '>No <input type="radio" name="forced_anonymous" value="1"'
+            if board['settings']['forced_anonymous']:
+              page += ' checked'
+            page += '>Yes<br>' + \
+            '<label for="disable_subject">Disable subject</label> <input type="radio" name="disable_subject" value="0"'
+            if not board['settings']['disable_subject']:
+              page += ' checked'
+            page += '>No <input type="radio" name="disable_subject" value="1"'
+            if board['settings']['disable_subject']:
+              page += ' checked'
+            page += '>Yes<br>' + \
+            '<label for="postarea_extra_html_top">HTML to include above posting area</label> <textarea name="postarea_extra_html_top" rows="10" cols="80">' + board['settings']['postarea_extra_html_top'] + '</textarea><br>' + \
+            '<label for="submit">&nbsp;</label> <input type="submit" value="Update Options">' + \
+            '</form>'
+        else:
+          page += 'Click a board to view/change its options:' + boardlist('board')
       elif path_split[2] == 'addboard':
+        if not administrator:
+          return
+        
         action_taken = False
         board_dir = ''
         
@@ -427,3 +471,10 @@ def logAction(staff, action):
   global db
   
   db.query("INSERT INTO `logs` (`timestamp`, `staff`, `action`) VALUES (" + str(timestamp()) + ", '" + _mysql.escape_string(staff) + "\', \'" + _mysql.escape_string(action) + "\')")
+
+def boardlist(action):
+  page = ''
+  boards = FetchAll('SELECT * FROM `boards` ORDER BY `dir`')
+  for board in boards:
+    page += '<br><a href="' + Settings.CGI_URL + 'manage/' + action + '/' + board['dir'] + '">/' + board['dir'] + '/ - ' + board['name'] + '</a>'
+  return page
