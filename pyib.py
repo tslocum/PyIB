@@ -69,33 +69,8 @@ class pyib(object):
       except:
         raise Exception, 'Invalid board supplied'
   
-      post = {
-        'boardid': board['id'],
-        'parentid': 0,
-        'name': '',
-        'tripcode': '',
-        'email': '',
-        'subject': '',
-        'message': '',
-        'password': '',
-        'file': '',
-        'file_hex': '',
-        'file_mime': '',
-        'file_original': '',
-        'file_size': 0,
-        'file_size_formatted': '',
-        'thumb': '',
-        'image_width': 0,
-        'image_height': 0,
-        'thumb_width': 0,
-        'thumb_height': 0,
-        'thumb_catalog_width': 0,
-        'thumb_catalog_height': 0,
-        'ip': self.environ['REMOTE_ADDR'],
-        'timestamp_formatted': '',
-        'timestamp': 0,
-        'bumped': 0,
-      }
+      post = Post(board['id'])
+      post['ip'] = self.environ['REMOTE_ADDR']
       
       try:
         parent = cgi.escape(self.formdata['parent']).strip()
@@ -174,17 +149,9 @@ class pyib(object):
       post['bumped'] = timestamp(t)
       post['nameblock'] = nameBlock(post['name'], post['tripcode'], post['email'], post['timestamp_formatted'])
 
-      post_values = [_mysql.escape_string(str(value)) for key, value in post.iteritems()]
-      
-      db.query('INSERT INTO `posts` (`%s`) VALUES (\'%s\')' % (
-        '`, `'.join(post.keys()),
-        '\', \''.join(post_values)
-      ))
-        
-      postid = db.insert_id()
-  
+      postid = post.insert()
       trimThreads()
-        
+      
       if post['parentid']:
         if post['email'].lower() != 'sage':
           db.query('UPDATE `posts` SET bumped = ' + str(timestamp(t)) + ' WHERE `id` = ' + str(post['parentid']) + ' AND `boardid` = ' + board['id'] + ' LIMIT 1')

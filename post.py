@@ -2,11 +2,61 @@ import math
 import os
 import threading
 import Queue
+import _mysql
 
 from database import *
 from template import *
 from settings import Settings
 from framework import *
+
+class Post(object):
+  def __init__(self, boardid=0):
+    self.post = {
+        'boardid': boardid,
+        'parentid': 0,
+        'name': '',
+        'tripcode': '',
+        'email': '',
+        'subject': '',
+        'message': '',
+        'password': '',
+        'file': '',
+        'file_hex': '',
+        'file_mime': '',
+        'file_original': '',
+        'file_size': 0,
+        'file_size_formatted': '',
+        'thumb': '',
+        'image_width': 0,
+        'image_height': 0,
+        'thumb_width': 0,
+        'thumb_height': 0,
+        'thumb_catalog_width': 0,
+        'thumb_catalog_height': 0,
+        'ip': '',
+        'timestamp_formatted': '',
+        'timestamp': 0,
+        'bumped': 0,
+    }
+    
+  def __getitem__(self, key):
+    return self.post[key]
+
+  def __setitem__(self, key, value):
+    self.post[key] = value
+    
+  def __iter__(self):
+    return self.post
+
+  def insert(self):
+    post_values = [_mysql.escape_string(str(value)) for key, value in self.post.iteritems()]
+      
+    db.query('INSERT INTO `posts` (`%s`) VALUES (\'%s\')' % (
+      '`, `'.join(self.post.keys()),
+      '\', \''.join(post_values)
+    ))
+
+    return db.insert_id()
 
 class RegenerateThread(threading.Thread):
   def __init__(self, threadid, request_queue):
