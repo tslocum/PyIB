@@ -259,21 +259,28 @@ def manage(self, path_split):
           else:
             page += '<meta http-equiv="refresh" content="0;url=' + Settings.CGI_URL + 'manage/ban/' + post['ip'] + '">'
         else:
-          if path_split[3] != '':
+          if path_split[3] == '':
+            try:
+              ip = self.formdata['ip']
+            except:
+              ip = ''
+          else:
+            ip = path_split[3]
+          if ip != '':
             try:
               reason = self.formdata['reason']
             except:
               reason = None
             if reason is not None:
-              ban = FetchOne('SELECT `ip` FROM `bans` WHERE `ip` = \'' + _mysql.escape_string(path_split[3]) + '\' LIMIT 1')
+              ban = FetchOne('SELECT `ip` FROM `bans` WHERE `ip` = \'' + _mysql.escape_string(ip) + '\' LIMIT 1')
               if not ban:
                 if self.formdata['seconds'] != '0':
                   until = str(timestamp() + int(self.formdata['seconds']))
                 else:
                   until = '0'
-                db.query("INSERT INTO `bans` (`ip`, `added`, `until`, `staff`, `reason`) VALUES ('" + _mysql.escape_string(path_split[3]) + "', " + str(timestamp()) + ", " + until + ", '" + _mysql.escape_string(staff_account['username']) + "', '" + _mysql.escape_string(self.formdata['reason']) + "')")
+                db.query("INSERT INTO `bans` (`ip`, `added`, `until`, `staff`, `reason`) VALUES ('" + _mysql.escape_string(ip) + "', " + str(timestamp()) + ", " + until + ", '" + _mysql.escape_string(staff_account['username']) + "', '" + _mysql.escape_string(self.formdata['reason']) + "')")
                 page += 'Ban successfully placed.'
-                action = 'Banned ' + path_split[3]
+                action = 'Banned ' + ip
                 if until != '0':
                   action += ' until ' + formatTimestamp(until)
                 else:
@@ -282,22 +289,35 @@ def manage(self, path_split):
               else:
                 page += 'There is already a ban in place for that IP.'
             else:
-              page += '<form action="' + Settings.CGI_URL + 'manage/ban/' + path_split[3] + '" name="banform" method="post">' + \
+              page += '<form action="' + Settings.CGI_URL + 'manage/ban/' + ip + '" name="banform" method="post">' + \
               '<label for="reason">Reason</label> <input type="text" name="reason"><br>' + \
               '<label for="seconds">Expire in #Seconds</label> <input type="text" name="seconds" value="0"> <a href="#" onclick="document.banform.seconds.value=\'0\';return false;">no expiration</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'3600\';return false;">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'604800\';return false;">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'1209600\';return false;">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'2592000\';return false;">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'31536000\';return false;">1yr</a><br>' + \
               '<label for="submit">&nbsp;</label> <input type="submit" value="Place Ban">' + \
               '</form>'
       elif path_split[2] == 'bans':
+        if len(path_split) > 4:
+          if path_split[3] == 'delete':
+            ip = FetchOne('SELECT `ip` FROM `bans` WHERE `id` = \'' + _mysql.escape_string(path_split[4]) + '\' LIMIT 1', 0)[0]
+            if ip != '':
+              db.query('DELETE FROM `bans` WHERE `id` = ' + _mysql.escape_string(path_split[4]) + ' LIMIT 1')
+              page += 'Ban deleted.'
+              logAction(staff_account['username'], 'Deleted ban for ' + ip)
+            else:
+              page += 'There was a problem while deleting that ban.  It may have already been removed, or recently expired.'
         bans = FetchAll('SELECT * FROM `bans` ORDER BY `added` DESC')
+        page += '<form action="' + Settings.CGI_URL + 'manage/ban/" name="banform" method="post">' + \
+        '<label for="ip">IP address</label> <input type="text" name="ip"><br>' + \
+        '<label for="submit">&nbsp;</label> <input type="submit" value="Proceed to ban form">' + \
+        '</form><br>'
         if bans:
-          page += '<table border="1"><tr><th>IP Address</th><th>Added</th><th>Expires</th><th>Placed by</th><th>Reason</th></tr>'
+          page += '<table border="1"><tr><th>IP Address</th><th>Added</th><th>Expires</th><th>Placed by</th><th>Reason</th><th>&nbsp;</th></tr>'
           for ban in bans:
             page += '<tr><td>' + ban['ip'] + '</td><td>' + formatTimestamp(ban['added']) + '</td><td>'
             if ban['until'] == '0':
               page += 'Does not expire'
             else:
               page += formatTimestamp(ban['until'])
-            page += '</td><td>' + ban['staff'] + '</td><td>' + ban['reason'] + '</td></tr>'
+            page += '</td><td>' + ban['staff'] + '</td><td>' + ban['reason'] + '</td><td><a href="' + Settings.CGI_URL + 'manage/bans/delete/' + ban['id'] + '">delete</a></td></tr>'
           page += '</table>'
       elif path_split[2] == 'changepassword':
         form_submitted = False
