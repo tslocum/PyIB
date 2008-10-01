@@ -1,4 +1,3 @@
-#!/usr/bin/python2.4
 #!/usr/bin/env python
 
 import time
@@ -16,7 +15,8 @@ from formatting import *
 from post import *
 from img import *
 
-_DEBUG = True
+# Set to True to disable PyIB's exception routing
+_DEBUG = False
 
 class pyib(object):
   def __init__(self, environ, start_response):
