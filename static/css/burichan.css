@@ -179,13 +179,3 @@ a:hover {
 	font-family:sans-serif;
 	color:#000000;
 }
-
-.watchedthreads {
-	background-color: #D6DAF0 !important;
-	border: 1px dotted #D6DAF0 !important;
-	border-top: 0px none !important;
-}
-
-.reflinkpreview {
-	background-color: #D6DAF0 !important;
-}
