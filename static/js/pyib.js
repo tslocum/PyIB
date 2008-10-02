@@ -264,7 +264,7 @@ function get_preferred_stylesheet() {
 }
 
 function delandbanlinks() {
-	if (!pyib_staff) return;
+	if (typeof pyib_staff == "undefined") return;
 	
 	var dnbelements = document.getElementsByTagName('span');
 	var dnbelement;
@@ -284,6 +284,20 @@ function delandbanlinks() {
 			}
 		}
 	}
+}
+
+function togglethread(threadid) {
+  if (hiddenthreads.toString().indexOf(threadid) !== -1) {
+    document.getElementById('unhidethread' + threadid).style.display = 'none';
+    document.getElementById('thread' + threadid).style.display = 'block';
+    hiddenthreads.splice(hiddenthreads.indexOf(threadid), 1);
+  } else {
+    document.getElementById('unhidethread' + threadid).style.display = 'block';
+    document.getElementById('thread' + threadid).style.display = 'none';
+    hiddenthreads.push(threadid);
+  }
+  set_cookie('hiddenthreads', hiddenthreads.join('!'), 30);
+  return false;
 }
 
 function set_inputs(id) {
@@ -312,8 +326,16 @@ window.onunload=function(e) {
 }
 
 window.onload=function(e) {
-	checkhighlight();
-	delandbanlinks();
+  checkhighlight();
+  delandbanlinks();
+  for(var i=0;i<hiddenthreads.length;i++){
+    try {
+      document.getElementById('unhidethread' + hiddenthreads[i]).style.display = 'block';
+      document.getElementById('thread' + hiddenthreads[i]).style.display = 'none';
+    } catch(err) {
+      continue;
+    }
+  }
 }
 
 if(style_cookie) {
@@ -326,3 +348,5 @@ if(style_cookie) {
 if (getCookie('pyib_staff')=='yes') {
 	pyib_staff = true;
 }
+
+var hiddenthreads = getCookie('hiddenthreads').split('!');

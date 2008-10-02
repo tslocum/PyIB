@@ -108,6 +108,12 @@
     <input type="hidden" name="board" value="#{board}">
 <?py if threads: ?>
   <?py for thread in threads: ?>
+    <?py if not replythread: ?>
+    <span id="unhidethread#{thread['id']}#{board}" style="display: none;">
+      Thread <a href="#{boards_url}#{board}/res/#{thread['id']}.html">#{thread['id']}</a> hidden. <a href="#" onclick="javascript:togglethread('#{thread['id']}#{board}');return false;">Show thread</a>
+    </span>
+    <div id="thread#{thread['id']}#{board}">
+    <?py #endif ?>
     <?py for post in thread['posts']: ?>
       <?py if int(post['parentid']) != 0: ?>
       <table>
@@ -167,7 +173,7 @@
           <?py #endif ?>
       <?py #endif ?>
       <?py if int(post['parentid']) == 0 and not replythread: ?>
-        &nbsp;[<a href="#{boards_url}#{board}/res/#{post['id']}.html">Reply</a>]
+        &nbsp;[<a href="#{boards_url}#{board}/res/#{post['id']}.html">Reply</a>] <a href="#" title="Hide thread" onclick="javascript:togglethread('#{post['id']}#{board}');return false;">&ndash;</a>
       <?py #endif ?>
       <blockquote>
       #{post['message']}
@@ -193,8 +199,9 @@
       </table>
       <?py #endif ?>
     <?py #endfor ?>
-          <br clear="left">
-          <hr>
+    </div>
+    <br clear="left">
+    <hr>
   <?py #endfor ?>
 <?py #endif ?>
     <table class="userdelete">

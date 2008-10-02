@@ -104,7 +104,7 @@ def regenerateFrontPages():
   try:
     op_posts = FetchAll('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = 0 ORDER BY `bumped` DESC')
     for op_post in op_posts:
-      thread = {'posts': [op_post], 'omitted': 0}
+      thread = {'id': op_post['id'], 'posts': [op_post], 'omitted': 0}
 
       try:
         replies = FetchAll('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + op_post['id'] + ' ORDER BY `id` DESC LIMIT ' + str(Settings.REPLIES_SHOWN_ON_FRONT_PAGE))
@@ -170,7 +170,7 @@ def threadPage(postid):
     postid = int(postid)
     op_post = FetchOne("SELECT * FROM `posts` WHERE `id` = " + str(postid) + " AND `boardid` = " + board['id'] + " LIMIT 1")
     if op_post:
-      thread = {'posts': [op_post], 'omitted': 0}
+      thread = {'id': op_post['id'], 'posts': [op_post], 'omitted': 0}
 
       try:
         replies = FetchAll('SELECT * FROM `posts` WHERE `parentid` = ' + op_post['id'] + ' AND `boardid` = ' + board['id'] + ' ORDER BY `id` ASC')
