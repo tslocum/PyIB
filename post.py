@@ -12,31 +12,31 @@ from framework import *
 class Post(object):
   def __init__(self, boardid=0):
     self.post = {
-        'boardid': boardid,
-        'parentid': 0,
-        'name': '',
-        'tripcode': '',
-        'email': '',
-        'subject': '',
-        'message': '',
-        'password': '',
-        'file': '',
-        'file_hex': '',
-        'file_mime': '',
-        'file_original': '',
-        'file_size': 0,
-        'file_size_formatted': '',
-        'thumb': '',
-        'image_width': 0,
-        'image_height': 0,
-        'thumb_width': 0,
-        'thumb_height': 0,
-        'thumb_catalog_width': 0,
-        'thumb_catalog_height': 0,
-        'ip': '',
-        'timestamp_formatted': '',
-        'timestamp': 0,
-        'bumped': 0,
+        "boardid": boardid,
+        "parentid": 0,
+        "name": "",
+        "tripcode": "",
+        "email": "",
+        "subject": "",
+        "message": "",
+        "password": "",
+        "file": "",
+        "file_hex": "",
+        "file_mime": "",
+        "file_original": "",
+        "file_size": 0,
+        "file_size_formatted": "",
+        "thumb": "",
+        "image_width": 0,
+        "image_height": 0,
+        "thumb_width": 0,
+        "thumb_height": 0,
+        "thumb_catalog_width": 0,
+        "thumb_catalog_height": 0,
+        "ip": "",
+        "timestamp_formatted": "",
+        "timestamp": 0,
+        "bumped": 0,
     }
     
   def __getitem__(self, key):
@@ -51,9 +51,9 @@ class Post(object):
   def insert(self):
     post_values = [_mysql.escape_string(str(value)) for key, value in self.post.iteritems()]
       
-    db.query('INSERT INTO `posts` (`%s`) VALUES (\'%s\')' % (
-      '`, `'.join(self.post.keys()),
-      '\', \''.join(post_values)
+    db.query("INSERT INTO `posts` (`%s`) VALUES ('%s')" % (
+      "`, `".join(self.post.keys()),
+      "', '".join(post_values)
     ))
 
     return db.insert_id()
@@ -67,7 +67,7 @@ class RegenerateThread(threading.Thread):
       action = self.request_queue.get()
       if action is None:
         break
-      if action == 'front':
+      if action == "front":
         regenerateFrontPages()
       else:
         regenerateThreadPage(action)
@@ -83,7 +83,7 @@ def threadUpdated(postid):
   for t in threads:
     t.start()
 
-  request_queue.put('front')
+  request_queue.put("front")
   request_queue.put(postid)
 
   for i in range(2):
@@ -102,16 +102,16 @@ def regenerateFrontPages():
 
   database_lock.acquire()
   try:
-    op_posts = FetchAll('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = 0 ORDER BY `bumped` DESC')
+    op_posts = FetchAll("SELECT * FROM `posts` WHERE `boardid` = %s AND `parentid` = 0 ORDER BY `bumped` DESC" % board["id"])
     for op_post in op_posts:
-      thread = {'id': op_post['id'], 'posts': [op_post], 'omitted': 0}
+      thread = {"id": op_post["id"], "posts": [op_post], "omitted": 0}
 
       try:
-        replies = FetchAll('SELECT * FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + op_post['id'] + ' ORDER BY `id` DESC LIMIT ' + str(Settings.REPLIES_SHOWN_ON_FRONT_PAGE))
+        replies = FetchAll("SELECT * FROM `posts` WHERE `boardid` = %s AND `parentid` = %s ORDER BY `id` DESC LIMIT %d" % (board["id"], op_post["id"], Settings.REPLIES_SHOWN_ON_FRONT_PAGE))
         if replies:
           if len(replies) == Settings.REPLIES_SHOWN_ON_FRONT_PAGE:
-            thread['omitted'] = (int(FetchOne('SELECT COUNT(*) FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + op_post['id'], 0)[0]) - Settings.REPLIES_SHOWN_ON_FRONT_PAGE)
-          [thread['posts'].append(reply) for reply in replies[::-1]]
+            thread["omitted"] = (int(FetchOne("SELECT COUNT(*) FROM `posts` WHERE `boardid` = %s AND `parentid` = %s" % (board["id"], op_post["id"]), 0)[0]) - Settings.REPLIES_SHOWN_ON_FRONT_PAGE)
+          [thread["posts"].append(reply) for reply in replies[::-1]]
       except:
         pass
 
@@ -135,12 +135,12 @@ def regenerateFrontPages():
   page_num = 0
   for page in pages:
     if page_num == 0:
-      file_name = 'index'
+      file_name = "index"
     else:
       file_name = str(page_num)
-    page_rendered = renderTemplate('board.html', {'threads': page, 'page_navigator': pageNavigator(page_num, page_count)})
+    page_rendered = renderTemplate("board.html", {"threads": page, "page_navigator": pageNavigator(page_num, page_count)})
     
-    f = open(Settings.ROOT_DIR + board['dir'] + '/' + file_name + '.html', 'w')
+    f = open(Settings.ROOT_DIR + board["dir"] + "/" + file_name + ".html", "w")
     try:
       f.write(page_rendered)
     finally:
@@ -156,7 +156,7 @@ def regenerateThreadPage(postid):
   
   page = threadPage(postid)
   
-  f = open(Settings.ROOT_DIR + board['dir'] + '/res/' + str(postid) + '.html', 'w')
+  f = open(Settings.ROOT_DIR + board["dir"] + "/res/" + str(postid) + ".html", "w")
   try:
     f.write(page)
   finally:
@@ -168,14 +168,14 @@ def threadPage(postid):
   database_lock.acquire()
   try:
     postid = int(postid)
-    op_post = FetchOne("SELECT * FROM `posts` WHERE `id` = " + str(postid) + " AND `boardid` = " + board['id'] + " LIMIT 1")
+    op_post = FetchOne("SELECT * FROM `posts` WHERE `id` = %s AND `boardid` = %s LIMIT 1" % (str(postid), board["id"]))
     if op_post:
-      thread = {'id': op_post['id'], 'posts': [op_post], 'omitted': 0}
+      thread = {"id": op_post["id"], "posts": [op_post], "omitted": 0}
 
       try:
-        replies = FetchAll('SELECT * FROM `posts` WHERE `parentid` = ' + op_post['id'] + ' AND `boardid` = ' + board['id'] + ' ORDER BY `id` ASC')
+        replies = FetchAll("SELECT * FROM `posts` WHERE `parentid` = %s AND `boardid` = %s ORDER BY `id` ASC" % (op_post["id"], board["id"]))
         if replies:
-          [thread['posts'].append(reply) for reply in replies]
+          [thread["posts"].append(reply) for reply in replies]
       except:
         pass
 
@@ -183,7 +183,7 @@ def threadPage(postid):
   finally:
     database_lock.release()
 
-  return renderTemplate('board.html', {'threads': threads, 'replythread': postid})
+  return renderTemplate("board.html", {"threads": threads, "replythread": postid})
 
 def regenerateBoard():
   """
@@ -191,17 +191,17 @@ def regenerateBoard():
   """
   board = Settings._BOARD
   
-  op_posts = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = 0')
+  op_posts = FetchAll("SELECT `id` FROM `posts` WHERE `boardid` = %s AND `parentid` = 0" % board["id"])
 
   request_queue = Queue.Queue()
   threads = [RegenerateThread(i, request_queue) for i in range(Settings.MAX_PROGRAM_THREADS)]
   for t in threads:
     t.start()
 
-  request_queue.put('front')
+  request_queue.put("front")
 
   for post in op_posts:
-    request_queue.put(post['id'])
+    request_queue.put(post["id"])
 
   for i in range(Settings.MAX_PROGRAM_THREADS):
     request_queue.put(None)
@@ -217,20 +217,20 @@ def deletePost(postid):
   global db
   board = Settings._BOARD
   
-  post = FetchOne('SELECT `id`, `parentid`, `file`, `thumb` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `id` = ' + str(postid) + ' LIMIT 1')
+  post = FetchOne("SELECT `id`, `parentid`, `file`, `thumb` FROM `posts` WHERE `boardid` = %s AND `id` = %s LIMIT 1" % (board["id"], str(postid)))
   if post:
-    if int(post['parentid']) == 0:
-      replies = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = ' + str(postid))
-      [deletePost(reply['id']) for reply in replies]
+    if int(post["parentid"]) == 0:
+      replies = FetchAll("SELECT `id` FROM `posts` WHERE `boardid` = %s AND `parentid` = %s" % (board["id"], str(postid)))
+      [deletePost(reply["id"]) for reply in replies]
 
-    if post['file'] != '':
+    if post["file"] != "":
       deleteFile(post)
       
-    db.query('DELETE FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `id` = ' + post['id'] + ' LIMIT 1')
+    db.query("DELETE FROM `posts` WHERE `boardid` = %s AND `id` = %s LIMIT 1" % (board["id"], post["id"]))
     
-    if int(post['parentid']) == 0:
+    if int(post["parentid"]) == 0:
       try:
-        os.unlink(Settings.ROOT_DIR + board['dir'] + '/res/' + post['id'] + '.html')
+        os.unlink(Settings.ROOT_DIR + board["dir"] + "/res/" + post["id"] + ".html")
       except:
         pass
 
@@ -241,12 +241,12 @@ def deleteFile(post):
   board = Settings._BOARD
 
   try:
-    os.unlink(Settings.ROOT_DIR + board['dir'] + '/src/' + post['file'])
+    os.unlink(Settings.ROOT_DIR + board["dir"] + "/src/" + post["file"])
   except:
     pass
 
   try:
-    os.unlink(Settings.ROOT_DIR + board['dir'] + '/thumb/' + post['thumb'])
+    os.unlink(Settings.ROOT_DIR + board["dir"] + "/thumb/" + post["thumb"])
   except:
     pass
 
@@ -256,10 +256,10 @@ def trimThreads():
   """
   board = Settings._BOARD
   
-  op_posts = FetchAll('SELECT `id` FROM `posts` WHERE `boardid` = ' + board['id'] + ' AND `parentid` = 0 ORDER BY `bumped` DESC')
+  op_posts = FetchAll("SELECT `id` FROM `posts` WHERE `boardid` = %s AND `parentid` = 0 ORDER BY `bumped` DESC" % board["id"])
   if len(op_posts) > Settings.MAX_THREADS:
     posts = op_posts[Settings.MAX_THREADS:]
-    [deletePost(post['id']) for post in posts]
+    [deletePost(post["id"]) for post in posts]
 
 def pageNavigator(page_num, page_count):
   """
@@ -267,47 +267,47 @@ def pageNavigator(page_num, page_count):
   """
   board = Settings._BOARD
   
-  page_navigator = '<td>'
+  page_navigator = "<td>"
   if page_num == 0:
-    page_navigator += 'Previous'
+    page_navigator += "Previous"
   else:
     previous = str(page_num - 1)
-    if previous == '0':
-      previous = ''
+    if previous == "0":
+      previous = ""
     else:
-      previous = previous + '.html'
-    page_navigator += '<form method="get" action="' + Settings.BOARDS_URL + board['dir'] + '/' + previous + '"><input value="Previous" type="submit"></form>'
+      previous = previous + ".html"
+    page_navigator += '<form method="get" action="' + Settings.BOARDS_URL + board["dir"] + '/' + previous + '"><input value="Previous" type="submit"></form>'
 
-  page_navigator += '</td><td>'
+  page_navigator += "</td><td>"
 
   for i in xrange(page_count):
     if i == page_num:
-      page_navigator += '[' + str(i) + '] '
+      page_navigator += "[" + str(i) + "] "
     else:
       if i == 0:
-        page_navigator += '[<a href="' + Settings.BOARDS_URL + board['dir'] + '/">' + str(i) + '</a>] '
+        page_navigator += '[<a href="' + Settings.BOARDS_URL + board["dir"] + '/">' + str(i) + '</a>] '
       else:
-        page_navigator += '[<a href="' + Settings.BOARDS_URL + board['dir'] + '/' + str(i) + '.html">' + str(i) + '</a>] '
+        page_navigator += '[<a href="' + Settings.BOARDS_URL + board["dir"] + '/' + str(i) + '.html">' + str(i) + '</a>] '
         
-  page_navigator += '</td><td>'
+  page_navigator += "</td><td>"
 
   next = (page_num + 1)
   if next == 10 or next == page_count:
-    page_navigator += 'Next</td>'
+    page_navigator += "Next</td>"
   else:
-    page_navigator += '<form method="get" action="' + Settings.BOARDS_URL + board['dir'] + '/' + str(next) + '.html"><input value="Next" type="submit"></form></td>'
+    page_navigator += '<form method="get" action="' + Settings.BOARDS_URL + board["dir"] + '/' + str(next) + '.html"><input value="Next" type="submit"></form></td>'
 
   return page_navigator
 
 def checkNotFlooding(post):
-  if post['parentid'] == 0:
+  if post["parentid"] == 0:
     floodlimit = Settings.SECONDS_BETWEEN_NEW_THREADS
   else:
     floodlimit = Settings.SECONDS_BETWEEN_REPLIES
 
   try:
-    post = FetchOne('SELECT `timestamp` FROM `posts` WHERE `ip` = \'' + post['ip'] + '\' ORDER BY `timestamp` DESC LIMIT 1')
-    seconds_since = (timestamp() - int(post['timestamp']))
+    post = FetchOne("SELECT `timestamp` FROM `posts` WHERE `ip` = '%s' ORDER BY `timestamp` DESC LIMIT 1" % post["ip"])
+    seconds_since = (timestamp() - int(post["timestamp"]))
   except:
     return True
   

@@ -173,7 +173,7 @@
           <?py #endif ?>
       <?py #endif ?>
       <?py if int(post['parentid']) == 0 and not replythread: ?>
-        &nbsp;[<a href="#{boards_url}#{board}/res/#{post['id']}.html">Reply</a>] <a href="#" title="Hide thread" onclick="javascript:togglethread('#{post['id']}#{board}');return false;">&ndash;</a>
+        &nbsp;[<a href="#{boards_url}#{board}/res/#{post['id']}.html">Reply</a>] <a href="#" title="Hide thread" onclick="javascript:togglethread('#{post['id']}#{board}');return false;" style="text-decoration: none;">&ndash;</a>
       <?py #endif ?>
       <blockquote>
       #{post['message']}

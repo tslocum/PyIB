@@ -17,76 +17,76 @@ def processImage(post, data, t):
   board = Settings._BOARD
   
   content_type, width, height = getImageInfo(data)
-  if content_type in ['image/png', 'image/jpeg', 'image/gif']:
+  if content_type in ["image/png", "image/jpeg", "image/gif"]:
     is_not_duplicate = checkFileNotDuplicate(data)
     if is_not_duplicate[0]:
-      if content_type == 'image/png':
-        file_extension = '.png'
-      elif content_type == 'image/jpeg':
-        file_extension = '.jpg'
-      elif content_type == 'image/gif':
-        file_extension = '.gif'
+      if content_type == "image/png":
+        file_extension = ".png"
+      elif content_type == "image/jpeg":
+        file_extension = ".jpg"
+      elif content_type == "image/gif":
+        file_extension = ".gif"
           
       file_name = str(timestamp(t)) + str(random.randint(10, 99))
-      file_thumb_name = file_name + 's' + file_extension
+      file_thumb_name = file_name + "s" + file_extension
       file_name += file_extension
   
-      file_path = Settings.ROOT_DIR + board['dir'] + '/src/' + file_name
-      file_thumb_path = Settings.ROOT_DIR + board['dir'] + '/thumb/' + file_thumb_name
+      file_path = Settings.ROOT_DIR + board["dir"] + "/src/" + file_name
+      file_thumb_path = Settings.ROOT_DIR + board["dir"] + "/thumb/" + file_thumb_name
         
-      f = open(file_path, 'w')
+      f = open(file_path, "w")
       try:
         f.write(data)
       finally:
         f.close()
   
-      if post['parentid'] == 0:
+      if post["parentid"] == 0:
         maxsize = Settings.MAX_DIMENSION_FOR_OP_IMAGE
       else:
         maxsize = Settings.MAX_DIMENSION_FOR_REPLY_IMAGE
       
       file_thumb_width, file_thumb_height = getThumbDimensions(width, height, maxsize)
       
-      os.system('convert ' + file_path + ' -resize ' + str(file_thumb_width) + 'x' + str(file_thumb_height) + ' -quality 90 ' + file_thumb_path)
+      os.system("convert %s -resize %dx%d -quality 90 %s" % (file_path, file_thumb_width, file_thumb_height, file_thumb_path))
       
       try:
         open(file_thumb_path)
       except:
-        raise Exception, 'Thumbnail creation failed'
+        raise Exception, "Thumbnail creation failed"
   
-      post['file'] = file_name
-      post['image_width'] = width
-      post['image_height'] = height
+      post["file"] = file_name
+      post["image_width"] = width
+      post["image_height"] = height
       
-      post['thumb'] = file_thumb_name
-      post['thumb_width'] = file_thumb_width
-      post['thumb_height'] = file_thumb_height
+      post["thumb"] = file_thumb_name
+      post["thumb_width"] = file_thumb_width
+      post["thumb_height"] = file_thumb_height
       
-      post['file_size'] = len(data)
-      if Settings.IMAGE_SIZE_UNIT == 'B':
-        post['file_size_formatted'] = str(post['file_size']) + ' B'
+      post["file_size"] = len(data)
+      if Settings.IMAGE_SIZE_UNIT == "B":
+        post["file_size_formatted"] = str(post["file_size"]) + " B"
       else:
-        post['file_size_formatted'] = str(long(post['file_size'] / 1024)) + ' KB'
+        post["file_size_formatted"] = str(long(post["file_size"] / 1024)) + " KB"
   
-      post['file_hex'] = getMD5(data)
+      post["file_hex"] = getMD5(data)
 
       return post
     else:
       raise Exception, 'That image has already been posted <a href="' + Settings.BOARDS_URL + board['dir'] + '/res/' + str(is_not_duplicate[1]) + '.html#' + str(is_not_duplicate[2]) + '">here</a>.'
   else:
-    raise Exception, 'Invalid file type'
+    raise Exception, "Invalid file type"
 
 def getImageInfo(data):
   data = str(data)
   size = len(data)
   height = -1
   width = -1
-  content_type = ''
+  content_type = ""
 
   # handle GIFs
-  if (size >= 10) and data[:6] in ('GIF87a', 'GIF89a'):
+  if (size >= 10) and data[:6] in ("GIF87a", "GIF89a"):
     # Check to see if content_type is correct
-    content_type = 'image/gif'
+    content_type = "image/gif"
     w, h = struct.unpack("<HH", data[6:10])
     width = int(w)
     height = int(h)
@@ -94,24 +94,24 @@ def getImageInfo(data):
   # See PNG 2. Edition spec (http://www.w3.org/TR/PNG/)
   # Bytes 0-7 are below, 4-byte chunk length, then 'IHDR'
   # and finally the 4-byte width, height
-  elif ((size >= 24) and data.startswith('\211PNG\r\n\032\n')
-        and (data[12:16] == 'IHDR')):
-    content_type = 'image/png'
+  elif ((size >= 24) and data.startswith("\211PNG\r\n\032\n")
+        and (data[12:16] == "IHDR")):
+    content_type = "image/png"
     w, h = struct.unpack(">LL", data[16:24])
     width = int(w)
     height = int(h)
 
   # Maybe this is for an older PNG version.
-  elif (size >= 16) and data.startswith('\211PNG\r\n\032\n'):
+  elif (size >= 16) and data.startswith("\211PNG\r\n\032\n"):
     # Check to see if we have the right content type
-    content_type = 'image/png'
+    content_type = "image/png"
     w, h = struct.unpack(">LL", data[8:16])
     width = int(w)
     height = int(h)
 
   # handle JPEGs
-  elif (size >= 2) and data.startswith('\377\330'):
-    content_type = 'image/jpeg'
+  elif (size >= 2) and data.startswith("\377\330"):
+    content_type = "image/jpeg"
     jpeg = StringIO(data)
     jpeg.read(2)
     b = jpeg.read(1)
@@ -163,11 +163,11 @@ def checkFileNotDuplicate(data):
   board = Settings._BOARD
   
   file_hex = getMD5(data)
-  post = FetchOne("SELECT `id`, `parentid` FROM `posts` WHERE `file_hex` = '" + file_hex + "' AND `boardid` = " + board['id'] + " LIMIT 1")
+  post = FetchOne("SELECT `id`, `parentid` FROM `posts` WHERE `file_hex` = '%s' AND `boardid` = %s LIMIT 1" % (file_hex, board['id']))
   if post:
-    if int(post['parentid']) != 0:
-      return False, post['parentid'], post['id']
+    if int(post["parentid"]) != 0:
+      return False, post["parentid"], post["id"]
     else:
-      return False, post['id'], post['id']
+      return False, post["id"], post["id"]
   else:
     return True, 0, 0

@@ -19,26 +19,26 @@ def setBoard(dir):
   This allows new settings to be added for each board without requiring any SQL
   queries to be ran
   """
-  board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '" + _mysql.escape_string(dir) + "' LIMIT 1")
+  board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '%s' LIMIT 1" % _mysql.escape_string(dir))
   
-  board['settings'] = {
-    'anonymous': 'Anonymous',
-    'forced_anonymous': False,
-    'disable_subject': False,
-    'tripcode_character': '!',
-    'postarea_extra_html_top': '',
-    'postarea_extra_html_bottom': '',
+  board["settings"] = {
+    "anonymous": "Anonymous",
+    "forced_anonymous": False,
+    "disable_subject": False,
+    "tripcode_character": "!",
+    "postarea_extra_html_top": "",
+    "postarea_extra_html_bottom": "",
   }
 
-  if board['configuration'] != '':
-    configuration = pickle.loads(board['configuration'])
-    board['settings'].update(configuration)
+  if board["configuration"] != "":
+    configuration = pickle.loads(board["configuration"])
+    board["settings"].update(configuration)
 
   """
   Calculate unique user posts and keep it in the board variable so it doesn't
   get recalculated during this execution
   """
-  board['unique_user_posts'] = FetchOne('SELECT COUNT(DISTINCT(`ip`)) FROM `posts` WHERE `boardid` = ' + board['id'], 0)[0]
+  board["unique_user_posts"] = FetchOne("SELECT COUNT(DISTINCT(`ip`)) FROM `posts` WHERE `boardid` = %s" % board["id"], 0)[0]
     
   Settings._BOARD = board
   
@@ -49,9 +49,9 @@ def updateBoardSettings():
   Pickle the board's settings and store it in the configuration field
   """
   board = Settings._BOARD
-  configuration = pickle.dumps(board['settings'])
+  configuration = pickle.dumps(board["settings"])
   
-  db.query("UPDATE `boards` SET `configuration` = '" + _mysql.escape_string(configuration) + "' WHERE `id` = " + board['id'] + " LIMIT 1")
+  db.query("UPDATE `boards` SET `configuration` = '%s' WHERE `id` = %s LIMIT 1" % (_mysql.escape_string(configuration), board["id"]))
 
 def timestamp(t=None):
   """
@@ -84,20 +84,20 @@ def getFormData(self):
   Process input sent to WSGI through a POST method and output it in an easy to
   retrieve format: dictionary of dictionaries in the format of {key: value}
   """
-  wsgi_input = self.environ['wsgi.input']
-  post_form = self.environ.get('wsgi.post_form')
+  wsgi_input = self.environ["wsgi.input"]
+  post_form = self.environ.get("wsgi.post_form")
   if (post_form is not None
     and post_form[0] is wsgi_input):
     return post_form[2]
   # This must be done to avoid a bug in cgi.FieldStorage
-  self.environ.setdefault('QUERY_STRING', '')
+  self.environ.setdefault("QUERY_STRING", "")
   fs = cgi.FieldStorage(fp=wsgi_input,
                         environ=self.environ,
                         keep_blank_values=1)
   new_input = InputProcessed()
   post_form = (new_input, wsgi_input, fs)
-  self.environ['wsgi.post_form'] = post_form
-  self.environ['wsgi.input'] = new_input
+  self.environ["wsgi.post_form"] = post_form
+  self.environ["wsgi.input"] = new_input
 
   formdata = {}
   for key in dict(fs):
@@ -113,7 +113,7 @@ def getFormData(self):
 
 class InputProcessed(object):
   def read(self):
-    raise EOFError('The wsgi.input stream has already been consumed')
+    raise EOFError("The wsgi.input stream has already been consumed")
   readline = readlines = __iter__ = read
 
 def getMD5(data):
@@ -122,7 +122,7 @@ def getMD5(data):
   
   return m.hexdigest()
   
-def setCookie(self, key, value='', max_age=None, expires=None, path='/', domain=None, secure=None):
+def setCookie(self, key, value="", max_age=None, expires=None, path="/", domain=None, secure=None):
   """
   Copied from Colubrid
   """
@@ -130,38 +130,38 @@ def setCookie(self, key, value='', max_age=None, expires=None, path='/', domain=
     self._cookies = SimpleCookie()
   self._cookies[key] = value
   if not max_age is None:
-    self._cookies[key]['max-age'] = max_age
+    self._cookies[key]["max-age"] = max_age
   if not expires is None:
     if isinstance(expires, basestring):
-      self._cookies[key]['expires'] = expires
+      self._cookies[key]["expires"] = expires
       expires = None
     elif isinstance(expires, datetime):
       expires = expires.utctimetuple()
     elif not isinstance(expires, (int, long)):
       expires = datetime.datetime.gmtime(expires)
     else:
-      raise ValueError('datetime or integer required')
+      raise ValueError("datetime or integer required")
     if not expires is None:
       now = datetime.datetime.gmtime()
-      month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
-               'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][now.tm_mon - 1]
-      day = ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
-             'Friday', 'Saturday', 'Sunday'][expires.tm_wday]
-      date = '%02d-%s-%s' % (
+      month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+               "Aug", "Sep", "Oct", "Nov", "Dec"][now.tm_mon - 1]
+      day = ["Monday", "Tuesday", "Wednesday", "Thursday",
+             "Friday", "Saturday", "Sunday"][expires.tm_wday]
+      date = "%02d-%s-%s" % (
           now.tm_mday, month, str(now.tm_year)[-2:]
       )
-      d = '%s, %s %02d:%02d:%02d GMT' % (day, date, now.tm_hour,
+      d = "%s, %s %02d:%02d:%02d GMT" % (day, date, now.tm_hour,
                                          now.tm_min, now.tm_sec)
-      self._cookies[key]['expires'] = d
+      self._cookies[key]["expires"] = d
   if not path is None:
-    self._cookies[key]['path'] = path
+    self._cookies[key]["path"] = path
   if not domain is None:
-    if domain != 'THIS':
-      self._cookies[key]['domain'] = domain
+    if domain != "THIS":
+      self._cookies[key]["domain"] = domain
   else:
-    self._cookies[key]['domain'] = Settings.DOMAIN
+    self._cookies[key]["domain"] = Settings.DOMAIN
   if not secure is None:
-    self._cookies[key]['secure'] = secure
+    self._cookies[key]["secure"] = secure
 
 def deleteCookie(self, key):
   """
@@ -170,5 +170,5 @@ def deleteCookie(self, key):
   if self._cookies is None:
     self._cookies = SimpleCookie()
   if not key in self._cookies:
-    self._cookies[key] = ''
-  self._cookies[key]['max-age'] = 0
+    self._cookies[key] = ""
+  self._cookies[key]["max-age"] = 0
