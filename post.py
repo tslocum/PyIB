@@ -62,6 +62,7 @@ class RegenerateThread(threading.Thread):
   def __init__(self, threadid, request_queue):
     threading.Thread.__init__(self, name="RegenerateThread-%d" % (threadid,))
     self.request_queue = request_queue
+    
   def run(self):
     while 1:
       action = self.request_queue.get()
@@ -111,7 +112,8 @@ def regenerateFrontPages():
         if replies:
           if len(replies) == Settings.REPLIES_SHOWN_ON_FRONT_PAGE:
             thread["omitted"] = (int(FetchOne("SELECT COUNT(*) FROM `posts` WHERE `boardid` = %s AND `parentid` = %s" % (board["id"], op_post["id"]), 0)[0]) - Settings.REPLIES_SHOWN_ON_FRONT_PAGE)
-          [thread["posts"].append(reply) for reply in replies[::-1]]
+          for reply in replies[::-1]:
+            thread["posts"].append(reply)
       except:
         pass
 
@@ -124,10 +126,11 @@ def regenerateFrontPages():
     page_count = int(math.ceil(float(len(op_posts)) / float(Settings.THREADS_SHOWN_ON_FRONT_PAGE)))
     
     for i in xrange(page_count):
+      pages.append([])
       start = i * Settings.THREADS_SHOWN_ON_FRONT_PAGE
       end = start + Settings.THREADS_SHOWN_ON_FRONT_PAGE
-      pages.append([])
-      [pages[i].append(thread) for thread in threads[start:end]]
+      for thread in threads[start:end]:
+        pages[i].append(thread)
   else:
     page_count = 0
     pages.append({})
@@ -175,7 +178,8 @@ def threadPage(postid):
       try:
         replies = FetchAll("SELECT * FROM `posts` WHERE `parentid` = %s AND `boardid` = %s ORDER BY `id` ASC" % (op_post["id"], board["id"]))
         if replies:
-          [thread["posts"].append(reply) for reply in replies]
+          for reply in replies:
+            thread["posts"].append(reply)
       except:
         pass
 
@@ -221,7 +225,8 @@ def deletePost(postid):
   if post:
     if int(post["parentid"]) == 0:
       replies = FetchAll("SELECT `id` FROM `posts` WHERE `boardid` = %s AND `parentid` = %s" % (board["id"], str(postid)))
-      [deletePost(reply["id"]) for reply in replies]
+      for reply in replies:
+        deletePost(reply["id"])
 
     if post["file"] != "":
       deleteFile(post)
@@ -259,7 +264,8 @@ def trimThreads():
   op_posts = FetchAll("SELECT `id` FROM `posts` WHERE `boardid` = %s AND `parentid` = 0 ORDER BY `bumped` DESC" % board["id"])
   if len(op_posts) > Settings.MAX_THREADS:
     posts = op_posts[Settings.MAX_THREADS:]
-    [deletePost(post["id"]) for post in posts]
+    for post in posts:
+      deletePost(post["id"])
 
 def pageNavigator(page_num, page_count):
   """

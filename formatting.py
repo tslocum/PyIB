@@ -8,10 +8,12 @@ def tripcode(pw):
   Calculate tripcode to match output of most imageboards
   """
   from crypt import crypt
+  
   try:
     pw = pw.encode("sjis", "ignore")
   except:
     pass
+  
   pw = pw.replace('"', "&quot;") \
          .replace("'", "'")      \
          .replace("<", "&lt;")   \
