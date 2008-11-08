@@ -1,11 +1,12 @@
 class Settings(object):
   NAME = "not7chan"
   DOMAIN = ".n7c.org"
-  ROOT_DIR = "/home/.cassandra/tj9991/img.n7c.org/"
+  ROOT_DIR = "/home/tj9991/img.n7c.org/"
   HOME_URL = "http://n7c.org/"
   BOARDS_URL = "http://img.n7c.org/"
   CGI_URL = "http://cgi.n7c.org/" # Path to folder containing the script
   MAX_PROGRAM_THREADS = 10 # Maximum threads this Python application can start (must be 2 or greater)
+                           # Setting this too high can cause the program to terminate
   
   BANNER_URL = "http://n7c.org/banners/banner.php"
   BANNER_WIDTH = 300

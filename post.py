@@ -309,7 +309,7 @@ def checkNotFlooding(post):
     post = FetchOne("SELECT `timestamp` FROM `posts` WHERE `ip` = '%s' ORDER BY `timestamp` DESC LIMIT 1" % post["ip"])
     seconds_since = (timestamp() - int(post["timestamp"]))
   except:
-    return True
+    return True # Couldn't find any record of this IP ever posting
   
   if seconds_since < floodlimit:
     return False

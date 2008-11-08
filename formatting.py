@@ -13,7 +13,7 @@ def tripcode(pw):
   except:
     pass
   pw = pw.replace('"', "&quot;") \
-         .replace("'", "'")     \
+         .replace("'", "'")      \
          .replace("<", "&lt;")   \
          .replace(">", "&gt;")   \
          .replace(",", ",")

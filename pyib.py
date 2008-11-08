@@ -207,7 +207,7 @@ class pyib(object):
                     else:
                       deletePost(delete_id)
                     if post["parentid"] == "0":
-                      regenerateFrontPage()
+                      regenerateFrontPages()
                     else:
                       threadUpdated(post["parentid"])
                     if imageonly:
