@@ -19,8 +19,6 @@ def FetchOne(query, method=1):
   db.query(query)
   r = db.use_result()
   try:
-    row = r.fetch_row(1, method)[0]
+    return r.fetch_row(1, method)[0]
   except:
-    row = None
-
-  return row
+    return None

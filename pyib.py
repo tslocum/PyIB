@@ -15,7 +15,7 @@ from formatting import *
 from post import *
 from img import *
 
-# Set to True to disable PyIB's exception routing
+# Set to True to disable PyIB's exception routing and enable profiling
 _DEBUG = False
 
 class pyib(object):
@@ -28,12 +28,16 @@ class pyib(object):
     self.handleRequest()
 
     if _DEBUG:
-      self.run()
+      import hotshot
+      prof = hotshot.Profile("pyib.prof")
+      prof.runcall(self.run)
+      prof.close()
     else:
       try:
         self.run()
       except Exception, message:
         self.error(message)
+      
       
   def __iter__(self):
     self.handleResponse()
