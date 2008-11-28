@@ -9,8 +9,6 @@ def renderTemplate(template, template_values={}):
   Run Tenjin on the supplied template name, with the extra values
   template_values (if supplied)
   """
-  global db
-  
   values = {
     "title": Settings.NAME,
     "board": None,

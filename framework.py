@@ -51,7 +51,7 @@ def updateBoardSettings():
   board = Settings._BOARD
   configuration = pickle.dumps(board["settings"])
   
-  db.query("UPDATE `boards` SET `configuration` = '%s' WHERE `id` = %s LIMIT 1" % (_mysql.escape_string(configuration), board["id"]))
+  UpdateDb("UPDATE `boards` SET `configuration` = '%s' WHERE `id` = %s LIMIT 1" % (_mysql.escape_string(configuration), board["id"]))
 
 def timestamp(t=None):
   """

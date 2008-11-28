@@ -50,13 +50,11 @@ class Post(object):
 
   def insert(self):
     post_values = [_mysql.escape_string(str(value)) for key, value in self.post.iteritems()]
-      
-    db.query("INSERT INTO `posts` (`%s`) VALUES ('%s')" % (
+    
+    return UpdateDb("INSERT INTO `posts` (`%s`) VALUES ('%s')" % (
       "`, `".join(self.post.keys()),
       "', '".join(post_values)
     ))
-
-    return db.insert_id()
 
 class RegenerateThread(threading.Thread):
   def __init__(self, threadid, request_queue):
@@ -218,7 +216,6 @@ def deletePost(postid):
   Remove post from database and unlink file (if present), along with all replies
   if supplied post is a thread
   """
-  global db
   board = Settings._BOARD
   
   post = FetchOne("SELECT `id`, `parentid`, `file`, `thumb` FROM `posts` WHERE `boardid` = %s AND `id` = %s LIMIT 1" % (board["id"], str(postid)))
@@ -231,7 +228,7 @@ def deletePost(postid):
     if post["file"] != "":
       deleteFile(post)
       
-    db.query("DELETE FROM `posts` WHERE `boardid` = %s AND `id` = %s LIMIT 1" % (board["id"], post["id"]))
+    UpdateDb("DELETE FROM `posts` WHERE `boardid` = %s AND `id` = %s LIMIT 1" % (board["id"], post["id"]))
     
     if int(post["parentid"]) == 0:
       try:

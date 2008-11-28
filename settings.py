@@ -16,6 +16,8 @@ class Settings(object):
   DATABASE_USERNAME = ""
   DATABASE_PASSWORD = ""
   DATABASE_DB = ""
+  DATABASE_POOL_SIZE = 5 # Initial number of database connections (SQLAlchemy)
+  DATABASE_POOL_OVERFLOW = 21 # Maximum number of database connections (SQLAlchemy)
 
   MAX_THREADS = 100
   THREADS_SHOWN_ON_FRONT_PAGE = 10
@@ -36,3 +38,4 @@ class Settings(object):
   # Non-editable configuration (beginning with an underscore) follows
   _BOARD = None
   _MODBROWSE = False
+  _USING_SQLALCHEMY = False

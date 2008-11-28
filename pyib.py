@@ -48,7 +48,7 @@ class pyib(object):
     self.output += renderTemplate("error.html", {"error": message, "navbar": False})
     
   def run(self):
-    db.query("DELETE FROM `bans` WHERE `until` != 0 AND `until` < " + str(timestamp()))
+    UpdateDb("DELETE FROM `bans` WHERE `until` != 0 AND `until` < " + str(timestamp()))
     if self.environ["PATH_INFO"] == "/post":
       ban = FetchOne("SELECT * FROM `bans` WHERE `ip` = '%s' LIMIT 1" % self.environ["REMOTE_ADDR"])
       if ban:
@@ -163,7 +163,7 @@ class pyib(object):
       
       if post["parentid"]:
         if post["email"].lower() != "sage":
-          db.query("UPDATE `posts` SET bumped = %d WHERE `id` = '%s' AND `boardid` = '%s' LIMIT 1" % (timestamp(t), str(post["parentid"]), board["id"]))
+          UpdateDb("UPDATE `posts` SET bumped = %d WHERE `id` = '%s' AND `boardid` = '%s' LIMIT 1" % (timestamp(t), str(post["parentid"]), board["id"]))
           setCookie(self, "pyib_email", self.formdata["email"])
           
         threadUpdated(post["parentid"])
@@ -205,7 +205,7 @@ class pyib(object):
                       if post["file"] != "":
                         if post["message"] != "":
                           deleteFile(post)
-                          db.query("UPDATE `posts` SET `file` = '', `file_hex` = '' WHERE `boardid` = %s AND `id` = %s LIMIT 1" % (board["id"], str(delete_id)))
+                          UpdateDb("UPDATE `posts` SET `file` = '', `file_hex` = '' WHERE `boardid` = %s AND `id` = %s LIMIT 1" % (board["id"], str(delete_id)))
                         else:
                           deletePost(delete_id)
                     else:

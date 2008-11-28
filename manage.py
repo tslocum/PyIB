@@ -8,7 +8,6 @@ from template import *
 from post import *
 
 def manage(self, path_split):
-  global db
   page = ''
   validated = False
   administrator = False
@@ -22,7 +21,7 @@ def manage(self, path_split):
       if valid_account:
         setCookie(self, 'pyib_manage', self.formdata['pyib_username'] + ':' + valid_account['password'], domain='THIS')
         setCookie(self, 'pyib_staff', 'yes')
-        db.query('DELETE FROM `logs` WHERE `timestamp` < ' + str(timestamp() - 604800)) # one week
+        UpdateDb('DELETE FROM `logs` WHERE `timestamp` < ' + str(timestamp() - 604800)) # one week
       else:
         page += 'Incorrect username/password.<hr>'
   except:
@@ -37,7 +36,7 @@ def manage(self, path_split):
         validated = True
         if staff_account['rights'] == '0' or staff_account['rights'] == '1':
           administrator = True
-        db.query('UPDATE `staff` SET `lastactive` = ' + str(timestamp()) + ' WHERE `id` = ' + staff_account['id'] + ' LIMIT 1')
+        UpdateDb('UPDATE `staff` SET `lastactive` = ' + str(timestamp()) + ' WHERE `id` = ' + staff_account['id'] + ' LIMIT 1')
   except:
     pass
   
@@ -135,7 +134,7 @@ def manage(self, path_split):
                       if self.formdata['rights'] in ['0', '1', '2']:
                         action_taken = True
                         if not ':' in self.formdata['username']:
-                          db.query("UPDATE `staff` SET `username` = '" + _mysql.escape_string(self.formdata['username']) + "', `rights` = " + self.formdata['rights'] + " LIMIT 1")
+                          UpdateDb("UPDATE `staff` SET `username` = '" + _mysql.escape_string(self.formdata['username']) + "', `rights` = " + self.formdata['rights'] + " LIMIT 1")
                           page += 'Staff member updated.'
                           logAction(staff_account['username'], 'Updated staff account for ' + self.formdata['username'])
                         else:
@@ -152,7 +151,7 @@ def manage(self, path_split):
                       action_taken = True
                       if not ':' in self.formdata['username']:
                         password = getMD5(self.formdata['password'])
-                        db.query("INSERT INTO `staff` (`username`, `password`, `added`, `rights`) VALUES ('" + _mysql.escape_string(self.formdata['username']) + "', '" + _mysql.escape_string(password) + "', " + str(timestamp()) + ", " + self.formdata['rights'] + ")")
+                        UpdateDb("INSERT INTO `staff` (`username`, `password`, `added`, `rights`) VALUES ('" + _mysql.escape_string(self.formdata['username']) + "', '" + _mysql.escape_string(password) + "', " + str(timestamp()) + ", " + self.formdata['rights'] + ")")
                         page += 'Staff member added.'
                         logAction(staff_account['username'], 'Added staff account for ' + self.formdata['username'])
                       else:
@@ -197,7 +196,7 @@ def manage(self, path_split):
               action_taken = True
               member = FetchOne('SELECT `username` FROM `staff` WHERE `id` = ' + _mysql.escape_string(path_split[4]) + ' LIMIT 1')
               if member:
-                db.query('DELETE FROM `staff` WHERE `id` = ' + _mysql.escape_string(path_split[4]) + ' LIMIT 1')
+                UpdateDb('DELETE FROM `staff` WHERE `id` = ' + _mysql.escape_string(path_split[4]) + ' LIMIT 1')
                 page += 'Staff member deleted.'
                 logAction(staff_account['username'], 'Deleted staff account for ' + member['username'])
               else:
@@ -276,7 +275,7 @@ def manage(self, path_split):
                   until = str(timestamp() + int(self.formdata['seconds']))
                 else:
                   until = '0'
-                db.query("INSERT INTO `bans` (`ip`, `added`, `until`, `staff`, `reason`) VALUES ('" + _mysql.escape_string(ip) + "', " + str(timestamp()) + ", " + until + ", '" + _mysql.escape_string(staff_account['username']) + "', '" + _mysql.escape_string(self.formdata['reason']) + "')")
+                UpdateDb("INSERT INTO `bans` (`ip`, `added`, `until`, `staff`, `reason`) VALUES ('" + _mysql.escape_string(ip) + "', " + str(timestamp()) + ", " + until + ", '" + _mysql.escape_string(staff_account['username']) + "', '" + _mysql.escape_string(self.formdata['reason']) + "')")
                 page += 'Ban successfully placed.'
                 action = 'Banned ' + ip
                 if until != '0':
@@ -297,7 +296,7 @@ def manage(self, path_split):
           if path_split[3] == 'delete':
             ip = FetchOne('SELECT `ip` FROM `bans` WHERE `id` = \'' + _mysql.escape_string(path_split[4]) + '\' LIMIT 1', 0)[0]
             if ip != '':
-              db.query('DELETE FROM `bans` WHERE `id` = ' + _mysql.escape_string(path_split[4]) + ' LIMIT 1')
+              UpdateDb('DELETE FROM `bans` WHERE `id` = ' + _mysql.escape_string(path_split[4]) + ' LIMIT 1')
               page += 'Ban deleted.'
               logAction(staff_account['username'], 'Deleted ban for ' + ip)
             else:
@@ -327,7 +326,7 @@ def manage(self, path_split):
         if form_submitted:
           if getMD5(self.formdata['oldpassword']) == staff_account['password']:
             if self.formdata['newpassword'] == self.formdata['newpassword2']:
-              db.query('UPDATE `staff` SET `password` = \'' + getMD5(self.formdata['newpassword']) + '\' WHERE `id` = ' + staff_account['id'] + ' LIMIT 1')
+              UpdateDb('UPDATE `staff` SET `password` = \'' + getMD5(self.formdata['newpassword']) + '\' WHERE `id` = ' + staff_account['id'] + ' LIMIT 1')
               page += 'Password successfully changed.  Please log out and log back in.'
             else:
               page += 'Passwords did not match.'
@@ -354,7 +353,7 @@ def manage(self, path_split):
             pass
           if form_submitted:
             if self.formdata['name'] != board['name']:
-              db.query('UPDATE `boards` SET `name` = \'' + _mysql.escape_string(self.formdata['name']) + '\' WHERE `id` = ' + board['id'] + ' LIMIT 1')
+              UpdateDb('UPDATE `boards` SET `name` = \'' + _mysql.escape_string(self.formdata['name']) + '\' WHERE `id` = ' + board['id'] + ' LIMIT 1')
             board['settings']['anonymous'] = self.formdata['anonymous']
             if self.formdata['forced_anonymous'] == '0':
               board['settings']['forced_anonymous'] = False
@@ -412,7 +411,7 @@ def manage(self, path_split):
             os.mkdir(Settings.ROOT_DIR + board_dir + '/src')
             os.mkdir(Settings.ROOT_DIR + board_dir + '/thumb')
             if os.path.exists(Settings.ROOT_DIR + board_dir) and os.path.isdir(Settings.ROOT_DIR + board_dir):
-              db.query('INSERT INTO `boards` (`dir`, `name`) VALUES (\'' + _mysql.escape_string(board_dir) + '\', \'' + _mysql.escape_string(self.formdata['name']) + '\')')
+              UpdateDb('INSERT INTO `boards` (`dir`, `name`) VALUES (\'' + _mysql.escape_string(board_dir) + '\', \'' + _mysql.escape_string(self.formdata['name']) + '\')')
               board = setBoard(board_dir)
               f = open(Settings.ROOT_DIR + board['dir'] + '/.htaccess', 'w')
               try:
@@ -468,9 +467,7 @@ def manage(self, path_split):
     self.output += renderTemplate('manage.html', template_values)
 
 def logAction(staff, action):
-  global db
-  
-  db.query("INSERT INTO `logs` (`timestamp`, `staff`, `action`) VALUES (" + str(timestamp()) + ", '" + _mysql.escape_string(staff) + "\', \'" + _mysql.escape_string(action) + "\')")
+  UpdateDb("INSERT INTO `logs` (`timestamp`, `staff`, `action`) VALUES (" + str(timestamp()) + ", '" + _mysql.escape_string(staff) + "\', \'" + _mysql.escape_string(action) + "\')")
 
 def boardlist(action):
   page = ''
