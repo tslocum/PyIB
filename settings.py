@@ -1,3 +1,10 @@
+import threading
+
+class SettingsLocal(threading.local):
+  BOARD = None
+  MODBROWSE = False
+  USING_SQLALCHEMY = False
+
 class Settings(object):
   NAME = "not7chan"
   DOMAIN = ".n7c.org"
@@ -35,7 +42,5 @@ class Settings(object):
   MAX_DIMENSION_FOR_REPLY_IMAGE = 125
   MAX_DIMENSION_FOR_IMAGE_CATALOG = 50
   
-  # Non-editable configuration (beginning with an underscore) follows
-  _BOARD = None
-  _MODBROWSE = False
-  _USING_SQLALCHEMY = False
+  _ = SettingsLocal() # Used when running multiple threads
+

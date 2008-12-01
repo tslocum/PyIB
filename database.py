@@ -10,7 +10,7 @@ try:
   _mysql = pool.manage( module = _mysql,
                         pool_size = Settings.DATABASE_POOL_SIZE,
                         max_overflow = Settings.DATABASE_POOL_OVERFLOW)
-  Settings._USING_SQLALCHEMY = True
+  Settings._.USING_SQLALCHEMY = True
 except ImportError:
   pass
 

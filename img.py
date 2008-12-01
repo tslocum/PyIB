@@ -14,7 +14,7 @@ def processImage(post, data, t):
   file names using datetime <t>
   Returns updated <post> with file and thumb values
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   
   content_type, width, height = getImageInfo(data)
   if content_type in ["image/png", "image/jpeg", "image/gif"]:
@@ -160,7 +160,7 @@ def checkFileNotDuplicate(data):
   Check that the file <data> does not already exist in a live post on the
   current board by calculating its hex and checking it against the database
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   
   file_hex = getMD5(data)
   post = FetchOne("SELECT `id`, `parentid` FROM `posts` WHERE `file_hex` = '%s' AND `boardid` = %s LIMIT 1" % (file_hex, board['id']))

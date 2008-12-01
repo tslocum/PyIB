@@ -11,7 +11,7 @@ from database import *
 
 def setBoard(dir):
   """
-  Sets the board which the script is operating on by filling Settings._BOARD
+  Sets the board which the script is operating on by filling Settings._.BOARD
   with the data from the db.  Once the data is set, the configuration field from
   the database is unpickled and placed in a pseudo-field called settings.
   All settings have a default value which will remain that way until the script
@@ -40,7 +40,7 @@ def setBoard(dir):
   """
   board["unique_user_posts"] = FetchOne("SELECT COUNT(DISTINCT(`ip`)) FROM `posts` WHERE `boardid` = %s" % board["id"], 0)[0]
     
-  Settings._BOARD = board
+  Settings._.BOARD = board
   
   return board
   
@@ -48,7 +48,7 @@ def updateBoardSettings():
   """
   Pickle the board's settings and store it in the configuration field
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   configuration = pickle.dumps(board["settings"])
   
   UpdateDb("UPDATE `boards` SET `configuration` = '%s' WHERE `id` = %s LIMIT 1" % (_mysql.escape_string(configuration), board["id"]))

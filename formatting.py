@@ -30,7 +30,7 @@ def nameBlock(post_name, post_tripcode, post_email, post_timestamp_formatted):
   a bit of time when templating pages, as it saves the engine a few conditions
   per post, which adds up over the time of processing entire pages
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   nameblock = ""
   
   if post_name == "" and post_tripcode == "":
@@ -96,7 +96,7 @@ def checkRefLinks(message, parentid):
   """
   Check for >># links in posts and replace with the HTML to make them clickable
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   
   # TODO: Make this use a callback and allow reference links to posts in other threads
   message = re.compile(r"&gt;&gt;([0-9]+)").sub('<a href="' + Settings.BOARDS_URL + board['dir'] + '/res/' + str(parentid) + r'.html#\1" onclick="javascript:highlight(' + '\'' + r'\1' + '\'' + r', true);">&gt;&gt;\1</a>', message)

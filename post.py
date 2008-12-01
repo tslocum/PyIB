@@ -60,8 +60,10 @@ class RegenerateThread(threading.Thread):
   def __init__(self, threadid, request_queue):
     threading.Thread.__init__(self, name="RegenerateThread-%d" % (threadid,))
     self.request_queue = request_queue
+    self.board = Settings._.BOARD
     
   def run(self):
+    Settings._.BOARD = self.board
     while 1:
       action = self.request_queue.get()
       if action is None:
@@ -96,7 +98,7 @@ def regenerateFrontPages():
   Regenerates index.html and #.html for each page after that according to the number
   of live threads in the database
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   threads = []
 
   database_lock.acquire()
@@ -153,7 +155,7 @@ def regenerateThreadPage(postid):
   """
   Regenerates /res/#.html for supplied thread id
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   
   page = threadPage(postid)
   
@@ -164,7 +166,7 @@ def regenerateThreadPage(postid):
     f.close()
 
 def threadPage(postid):
-  board = Settings._BOARD
+  board = Settings._.BOARD
 
   database_lock.acquire()
   try:
@@ -191,7 +193,7 @@ def regenerateBoard():
   """
   Update front pages and every thread res HTML page
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   
   op_posts = FetchAll("SELECT `id` FROM `posts` WHERE `boardid` = %s AND `parentid` = 0" % board["id"])
 
@@ -216,7 +218,7 @@ def deletePost(postid):
   Remove post from database and unlink file (if present), along with all replies
   if supplied post is a thread
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   
   post = FetchOne("SELECT `id`, `parentid`, `file`, `thumb` FROM `posts` WHERE `boardid` = %s AND `id` = %s LIMIT 1" % (board["id"], str(postid)))
   if post:
@@ -240,7 +242,7 @@ def deleteFile(post):
   """
   Unlink file and thumb of supplied post
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
 
   try:
     os.unlink(Settings.ROOT_DIR + board["dir"] + "/src/" + post["file"])
@@ -256,7 +258,7 @@ def trimThreads():
   """
   Delete any threads which have passed the MAX_THREADS setting
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   
   op_posts = FetchAll("SELECT `id` FROM `posts` WHERE `boardid` = %s AND `parentid` = 0 ORDER BY `bumped` DESC" % board["id"])
   if len(op_posts) > Settings.MAX_THREADS:
@@ -268,7 +270,7 @@ def pageNavigator(page_num, page_count):
   """
   Create page navigator in the format of [0], [1], [2]...
   """
-  board = Settings._BOARD
+  board = Settings._.BOARD
   
   page_navigator = "<td>"
   if page_num == 0:

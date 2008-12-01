@@ -107,7 +107,7 @@ def manage(self, path_split):
           '</form>'
         else:
           skiptemplate = True
-          Settings._MODBROWSE = True
+          Settings._.MODBROWSE = True
           board = setBoard(board_dir)
           self.output += threadPage(thread_id)
       elif path_split[2] == 'staff':

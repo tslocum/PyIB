@@ -32,13 +32,13 @@ def renderTemplate(template, template_values={}):
     "unique_user_posts": None,
     "page_navigator": "",
     "navbar": Settings.SHOW_NAVBAR,
-    "modbrowse": Settings._MODBROWSE,
+    "modbrowse": Settings._.MODBROWSE,
   }
   
   engine = tenjin.Engine()
   
   if template == "board.html":
-    board = Settings._BOARD
+    board = Settings._.BOARD
       
     values.update({
       "board": board["dir"],
