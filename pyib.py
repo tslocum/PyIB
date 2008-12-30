@@ -1,4 +1,6 @@
+#!/usr/bin/python2.4
 #!/usr/bin/env python
+# Remove the first line to use the env command to locate python
 
 import time
 import datetime
@@ -38,7 +40,6 @@ class pyib(object):
       except Exception, message:
         self.error(message)
       
-      
   def __iter__(self):
     self.handleResponse()
     self.start("200 OK", self.headers)
@@ -46,25 +47,24 @@ class pyib(object):
 
   def error(self, message):
     self.output += renderTemplate("error.html", {"error": message, "navbar": False})
+  
+  def handleRequest(self):
+    self.headers = [("Content-Type", "text/html")]
+    self.handleCookies()
     
+  def handleResponse(self):
+    if self._cookies is not None:
+      for cookie in self._cookies.values():
+        self.headers.append(("Set-Cookie", cookie.output(header="")))
+    
+  def handleCookies(self):
+    self._cookies = SimpleCookie()
+    self._cookies.load(self.environ.get("HTTP_COOKIE", ""))
+
   def run(self):
     UpdateDb("DELETE FROM `bans` WHERE `until` != 0 AND `until` < " + str(timestamp()))
     if self.environ["PATH_INFO"] == "/post":
-      ban = FetchOne("SELECT * FROM `bans` WHERE `ip` = '%s' LIMIT 1" % self.environ["REMOTE_ADDR"])
-      if ban:
-        message = "You have been banned from posting on this board.<br>"
-        if ban["reason"] != "":
-          message += "Reason: %s<br>" % ban["reason"]
-        else:
-          message += "No reason was given for this ban.<br>"
-        message += "Your ban was placed <b>%s</b>, and " % formatTimestamp(ban["added"])
-        if ban["until"] != "0":
-          message += "will expire <b>%s</b>.<br>" % formatTimestamp(ban["until"])
-        else:
-          message += "<b>will not expire</b>.<br>"
-        message += "Your IP address is <b>%s</b>." % self.environ["REMOTE_ADDR"]
-          
-        self.error(message)
+      if self.addressIsBanned():
         return
         
       try:
@@ -154,8 +154,7 @@ class pyib(object):
           raise Exception, "Please upload an image, or enter a message"
   
       post["timestamp_formatted"] = formatDate(t)
-      post["timestamp"] = timestamp(t)
-      post["bumped"] = timestamp(t)
+      post["timestamp"] = post["bumped"] = timestamp(t)
       post["nameblock"] = nameBlock(post["name"], post["tripcode"], post["email"], post["timestamp_formatted"])
 
       postid = post.insert()
@@ -235,20 +234,27 @@ class pyib(object):
       if not caught:
         # Redirect the user back to the front page
         self.output += '<meta http-equiv="refresh" content="0;url=%s">--&gt; --&gt; --&gt;' % Settings.HOME_URL
-  
-  def handleRequest(self):
-    self.headers = [("Content-Type", "text/html")]
-    self.handleCookies()
+
+  def addressIsBanned(self):
+    ban = FetchOne("SELECT * FROM `bans` WHERE `ip` = '%s' LIMIT 1" % self.environ["REMOTE_ADDR"])
+    if ban:
+      message = "You have been banned from posting on this board.<br>"
+      if ban["reason"] != "":
+        message += "Reason: %s<br>" % ban["reason"]
+      else:
+        message += "No reason was given for this ban.<br>"
+      message += "Your ban was placed <b>%s</b>, and " % formatTimestamp(ban["added"])
+      if ban["until"] != "0":
+        message += "will expire <b>%s</b>.<br>" % formatTimestamp(ban["until"])
+      else:
+        message += "<b>will not expire</b>.<br>"
+      message += "Your IP address is <b>%s</b>." % self.environ["REMOTE_ADDR"]
+        
+      self.error(message)
+      return True
     
-  def handleResponse(self):
-    if self._cookies is not None:
-      for cookie in self._cookies.values():
-        self.headers.append(("Set-Cookie", cookie.output(header="")))
-    
-  def handleCookies(self):
-    self._cookies = SimpleCookie()
-    self._cookies.load(self.environ.get("HTTP_COOKIE", ""))
-  
+    return False
+        
 if __name__ == "__main__":
   from fcgi import WSGIServer
 
