@@ -1,11 +1,55 @@
 <?py include('templates/base_top.html') ?>
 <style type="text/css">
-label {
-	font-size: 12px;
-	text-align: right;
-	width: 175px;
-	padding-right: 20px;
+fieldset { margin-bottom: 10px; }
+	
+legend {
+	padding: 0 2px;
+	font-weight: bold;
+	_margin: 0 -7px; /* IE Win */
 }
+	
+label {
+	display: inline-block;
+	line-height: 1.8;
+	vertical-align: top;
+}
+	
+fieldset ol {
+	margin: 0;
+	padding: 0;
+}
+	
+fieldset li {
+	list-style: none;
+	padding: 5px;
+	margin: 0;
+}
+	
+fieldset fieldset {
+	border: none;
+	margin: 3px 0 0;
+}
+	
+fieldset fieldset legend {
+	padding: 0 0 5px;
+	font-weight: normal;
+}
+	
+fieldset fieldset label {
+	display: block;
+	width: auto;
+}
+
+em {
+	font-weight: bold;
+	font-style: normal;
+	color: #f00;
+}
+
+label { width: 120px; } /* Width of labels */
+fieldset fieldset label { margin-left: 123px; } /* Width plus 3 (html space) */
+
+/*\*//*/ legend { display: inline-block; } /* IE Mac legend fix */
 </style>
 <?py if validated: ?>
   <div style="text-align: center;">

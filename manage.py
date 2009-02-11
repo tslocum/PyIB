@@ -4,6 +4,7 @@ import os
 from database import *
 from settings import Settings
 from framework import *
+from formatting import *
 from template import *
 from post import *
 
@@ -78,6 +79,30 @@ def manage(self, path_split):
             
             page += 'Rebuilt /' + board['dir'] + '/ in ' + timeTaken(t1, time.time()) + ' seconds'
             logAction(staff_account['username'], 'Rebuilt /' + board['dir'] + '/')
+      elif path_split[2] == 'rebuildnameblocks':
+        board_dir = ''
+        try:
+          board_dir = path_split[3]
+        except:
+          pass
+
+        if board_dir == '':
+          try:
+            board_dir = self.formdata['dir']
+          except:
+            pass
+        
+        if board_dir != '':
+          t1 = time.time()
+          board = setBoard(board_dir)
+          
+          posts = FetchAll('SELECT `id`, `name`, `tripcode`, `email`, `timestamp` FROM `posts` WHERE `boardid` = ' + board['id'])
+          for post in posts:
+            nameblock = nameBlock(post['name'], post['tripcode'], post['email'], formatTimestamp(post['timestamp']))
+            UpdateDb('UPDATE `posts` SET `nameblock` = \'' + _mysql.escape_string(nameblock) + '\' WHERE `id` = ' + post['id'] + ' AND `boardid` = ' + board['id'] + ' LIMIT 1')
+          
+          page += 'Rebuilt name blocks for /' + board['dir'] + '/ in ' + timeTaken(t1, time.time()) + ' seconds'
+          logAction(staff_account['username'], 'Rebuilt /' + board['dir'] + '/')          
       elif path_split[2] == 'modbrowse':
         board_dir = ''
         thread_id = 0
