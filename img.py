@@ -46,7 +46,8 @@ def processImage(post, data, t):
         maxsize = Settings.MAX_DIMENSION_FOR_REPLY_IMAGE
       
       file_thumb_width, file_thumb_height = getThumbDimensions(width, height, maxsize)
-      
+
+      logTime("Generating thumbnail")
       os.system("convert %s -resize %dx%d -quality 90 %s" % (file_path, file_thumb_width, file_thumb_height, file_thumb_path))
       
       try:

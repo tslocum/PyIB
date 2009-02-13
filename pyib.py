@@ -20,6 +20,9 @@ from img import *
 # Set to True to disable PyIB's exception routing and enable profiling
 _DEBUG = False
 
+# Set to True to save performance data to pyib.txt
+_LOG = True
+
 class pyib(object):
   def __init__(self, environ, start_response):
     global _DEBUG
@@ -36,9 +39,16 @@ class pyib(object):
       prof.close()
     else:
       try:
+        logTime("**Start**")
         self.run()
+        logTime("**End**")
       except Exception, message:
         self.error(message)
+
+    if _LOG:
+      logfile = open(Settings.ROOT_DIR + "/pyib.txt", "w")
+      logfile.write(logTimes())
+      logfile.close()
       
   def __iter__(self):
     self.handleResponse()
@@ -157,9 +167,12 @@ class pyib(object):
       post["timestamp"] = post["bumped"] = timestamp(t)
       post["nameblock"] = nameBlock(post["name"], post["tripcode"], post["email"], post["timestamp_formatted"])
 
+      logTime("Inserting post")
       postid = post.insert()
+      logTime("Trimming threads")
       trimThreads()
-      
+
+      logTime("Updating thread")
       if post["parentid"]:
         if post["email"].lower() != "sage":
           UpdateDb("UPDATE `posts` SET bumped = %d WHERE `id` = '%s' AND `boardid` = '%s' LIMIT 1" % (timestamp(t), str(post["parentid"]), board["id"]))

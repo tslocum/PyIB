@@ -19,6 +19,7 @@ def setBoard(dir):
   This allows new settings to be added for each board without requiring any SQL
   queries to be ran
   """
+  logTime("Setting board to " + dir)
   board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '%s' LIMIT 1" % _mysql.escape_string(dir))
   
   board["settings"] = {
@@ -172,3 +173,37 @@ def deleteCookie(self, key):
   if not key in self._cookies:
     self._cookies[key] = ""
   self._cookies[key]["max-age"] = 0
+
+class PyIBLogger:
+  def __init__(self):
+    self.times = []
+
+  def log(self, message):
+    self.times.append([time.time(), message])
+
+  def allTimes(self):
+    output = "Time         Logged action\n--------------------------\n"
+    start = self.times[0][0]
+    for time in self.times:
+      difference = str(time[0] - start)
+      difference_split = difference.split(".")
+      if len(difference_split[0]) < 2:
+        difference_split[0] = "0" + difference_split[0]
+        
+      if len(difference_split[1]) < 7:
+        difference_split[1] = ("0" * (7 - len(difference_split[1]))) + difference_split[1]
+      elif len(difference_split[1]) > 7:
+        difference_split[1] = difference_split[1][:7]
+        
+      output += ".".join(difference_split) + "   " + time[1] + "\n"
+
+    return output
+
+logger = PyIBLogger()
+def logTime(message):
+  global logger
+  logger.log(message)
+
+def logTimes():
+  global logger
+  return logger.allTimes()
