@@ -176,7 +176,7 @@ def manage(self, path_split):
                       action_taken = True
                       if not ':' in self.formdata['username']:
                         password = getMD5(self.formdata['password'])
-                        UpdateDb("INSERT INTO `staff` (`username`, `password`, `added`, `rights`) VALUES ('" + _mysql.escape_string(self.formdata['username']) + "', '" + _mysql.escape_string(password) + "', " + str(timestamp()) + ", " + self.formdata['rights'] + ")")
+                        InsertDb("INSERT INTO `staff` (`username`, `password`, `added`, `rights`) VALUES ('" + _mysql.escape_string(self.formdata['username']) + "', '" + _mysql.escape_string(password) + "', " + str(timestamp()) + ", " + self.formdata['rights'] + ")")
                         page += 'Staff member added.'
                         logAction(staff_account['username'], 'Added staff account for ' + self.formdata['username'])
                       else:
@@ -300,7 +300,7 @@ def manage(self, path_split):
                   until = str(timestamp() + int(self.formdata['seconds']))
                 else:
                   until = '0'
-                UpdateDb("INSERT INTO `bans` (`ip`, `added`, `until`, `staff`, `reason`) VALUES ('" + _mysql.escape_string(ip) + "', " + str(timestamp()) + ", " + until + ", '" + _mysql.escape_string(staff_account['username']) + "', '" + _mysql.escape_string(self.formdata['reason']) + "')")
+                InsertDb("INSERT INTO `bans` (`ip`, `added`, `until`, `staff`, `reason`) VALUES ('" + _mysql.escape_string(ip) + "', " + str(timestamp()) + ", " + until + ", '" + _mysql.escape_string(staff_account['username']) + "', '" + _mysql.escape_string(self.formdata['reason']) + "')")
                 page += 'Ban successfully placed.'
                 action = 'Banned ' + ip
                 if until != '0':
@@ -492,7 +492,7 @@ def manage(self, path_split):
     self.output += renderTemplate('manage.html', template_values)
 
 def logAction(staff, action):
-  UpdateDb("INSERT INTO `logs` (`timestamp`, `staff`, `action`) VALUES (" + str(timestamp()) + ", '" + _mysql.escape_string(staff) + "\', \'" + _mysql.escape_string(action) + "\')")
+  InsertDb("INSERT INTO `logs` (`timestamp`, `staff`, `action`) VALUES (" + str(timestamp()) + ", '" + _mysql.escape_string(staff) + "\', \'" + _mysql.escape_string(action) + "\')")
 
 def boardlist(action):
   page = ''
