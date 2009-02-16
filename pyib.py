@@ -32,6 +32,7 @@ class pyib(object):
     self.output = ""
     self.handleRequest()
 
+    logTime("**Start**")
     if _DEBUG:
       import hotshot
       prof = hotshot.Profile("pyib.prof")
@@ -39,12 +40,11 @@ class pyib(object):
       prof.close()
     else:
       try:
-        logTime("**Start**")
         self.run()
-        logTime("**End**")
       except Exception, message:
         self.error(message)
-
+    logTime("**End**")
+    
     if _LOG:
       logfile = open(Settings.ROOT_DIR + "/pyib.txt", "w")
       logfile.write(logTimes())
@@ -274,13 +274,14 @@ if __name__ == "__main__":
   # Psyco is not required, however it will be used if available
   try:
     import psyco
+    logTime("Psyco has been installed")
     psyco.bind(tenjin.helpers.to_str)
     psyco.bind(pyib.run, 2)
     psyco.bind(getFormData)
     psyco.bind(setCookie)
     psyco.bind(threadUpdated)
     psyco.bind(processImage)
-  except ImportError:
+  except:
     pass
   
   WSGIServer(pyib).run()

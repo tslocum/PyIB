@@ -98,7 +98,6 @@ def regenerateFrontPages():
   Regenerates index.html and #.html for each page after that according to the number
   of live threads in the database
   """
-  logTime("Regenerating front pages")
   board = Settings._.BOARD
   threads = []
 
@@ -121,7 +120,7 @@ def regenerateFrontPages():
       threads.append(thread)
   finally:
     database_lock.release()
-
+  
   pages = []
   if len(op_posts) > 0:
     page_count = int(math.ceil(float(len(op_posts)) / float(Settings.THREADS_SHOWN_ON_FRONT_PAGE)))
@@ -149,16 +148,13 @@ def regenerateFrontPages():
       f.write(page_rendered)
     finally:
       f.close()
-    logTime("Regenerated front page " + file_name)
 
     page_num += 1
-  logTime("Finished regenerating front pages")
   
 def regenerateThreadPage(postid):
   """
   Regenerates /res/#.html for supplied thread id
   """
-  logTime("Regenerating res page " + str(postid))
   board = Settings._.BOARD
   
   page = threadPage(postid)
@@ -168,7 +164,6 @@ def regenerateThreadPage(postid):
     f.write(page)
   finally:
     f.close()
-  logTime("Finished regenerating res page " + str(postid))
 
 def threadPage(postid):
   board = Settings._.BOARD
@@ -234,7 +229,8 @@ def deletePost(postid):
 
     if post["file"] != "":
       deleteFile(post)
-      
+
+    logTime("Deleting post " + str(postid))
     UpdateDb("DELETE FROM `posts` WHERE `boardid` = %s AND `id` = %s LIMIT 1" % (board["id"], post["id"]))
     
     if int(post["parentid"]) == 0:
