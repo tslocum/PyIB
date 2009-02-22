@@ -18,7 +18,7 @@ from post import *
 from img import *
 
 # Set to True to disable PyIB's exception routing and enable profiling
-_DEBUG = True
+_DEBUG = False
 
 # Set to True to save performance data to pyib.txt
 _LOG = True
@@ -85,7 +85,7 @@ class pyib(object):
       except:
         raise Exception, "Invalid board supplied"
 
-      if addressIsBanned(self.environ["REMOTE_ADDR"], board["dir"]):
+      if addressIsBanned(self, self.environ["REMOTE_ADDR"], board["dir"]):
         return
       
       post = Post(board["id"])

@@ -118,6 +118,11 @@ def checkQuotes(message):
   
   return message
 
+def escapeHTML(string):
+  string = string.replace('<', '&lt;')
+  string = string.replace('>', '&gt;')
+  return string
+
 def onlyAllowedHTML(message):
   """
   Allow <b>, <i>, <u>, <strike>, and <pre> in posts

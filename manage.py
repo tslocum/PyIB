@@ -373,7 +373,7 @@ def manage(self, path_split):
                   page += ' checked'
                 page += '> ' + board['name'] + '</li>'
   
-              page += '</ul><br>'
+              page += '</ul>'
               
               if edit_id > 0:
                 page += '<input type="hidden" name="edit" value="' + edit_id + '">'
@@ -389,7 +389,7 @@ def manage(self, path_split):
             ip = FetchOne('SELECT `ip` FROM `bans` WHERE `id` = \'' + _mysql.escape_string(path_split[4]) + '\' LIMIT 1', 0)[0]
             if ip != '':
               UpdateDb('DELETE FROM `bans` WHERE `id` = ' + _mysql.escape_string(path_split[4]) + ' LIMIT 1')
-              page += 'Ban deleted.'
+              page += 'Ban successfully deleted.'
               logAction(staff_account['username'], 'Deleted ban for ' + ip)
             else:
               page += 'There was a problem while deleting that ban.  It may have already been removed, or recently expired.'
@@ -415,7 +415,7 @@ def manage(self, path_split):
               page += 'Does not expire'
             else:
               page += formatTimestamp(ban['until'])
-            page += '</td><td>' + ban['staff'] + '</td><td>' + ban['reason'] + '</td><td>' + ban['note'] + '</td><td><a href="' + Settings.CGI_URL + 'manage/ban/' + ban['ip'] + '?edit=' + ban['id'] + '">edit</a> <a href="' + Settings.CGI_URL + 'manage/bans/delete/' + ban['id'] + '">delete</a></td></tr>'
+            page += '</td><td>' + ban['staff'] + '</td><td>' + escapeHTML(ban['reason']) + '</td><td>' + ban['note'] + '</td><td><a href="' + Settings.CGI_URL + 'manage/ban/' + ban['ip'] + '?edit=' + ban['id'] + '">edit</a> <a href="' + Settings.CGI_URL + 'manage/bans/delete/' + ban['id'] + '">delete</a></td></tr>'
           page += '</table>'
       elif path_split[2] == 'changepassword':
         form_submitted = False

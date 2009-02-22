@@ -45,7 +45,7 @@ def setBoard(dir):
   
   return board
 
-def addressIsBanned(ip, board):
+def addressIsBanned(self, ip, board):
   bans = FetchAll("SELECT * FROM `bans` WHERE `ip` = '%s'" % self.environ["REMOTE_ADDR"])
   for ban in bans:
     if ban["where"] != "":
