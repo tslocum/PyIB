@@ -1,5 +1,9 @@
 <?py include('templates/base_top.html') ?>
 <style type="text/css">
+.managenav a {
+	font-weight: bold;
+}
+
 fieldset { margin-bottom: 10px; }
 	
 legend {
@@ -52,16 +56,16 @@ fieldset fieldset label { margin-left: 123px; } /* Width plus 3 (html space) */
 /*\*//*/ legend { display: inline-block; } /* IE Mac legend fix */
 </style>
 <?py if validated: ?>
-  <div style="text-align: center;">
+  <div style="text-align: center;" class="managenav">
     Logged in as <b><acronym title="Account created #{added}">#{username}</acronym></b> with
     <?py if rights == '0': ?>
-    Super-Administrator
+    <span class="superadministrator">Super-Administrator</span>
     <?py elif rights == '1': ?>
-    Administrator
+    <span class="administrator">Administrator</span>
     <?py elif rights == '3': ?>
-    Moderator
+    <span class="moderator">Moderator</span>
     <?py #endif ?>
-    privileges<br>
+    privileges.<br>
     - <a href="#{cgi_url}manage">Home</a> - <a href="#{cgi_url}manage/modbrowse">Modbrowse</a> - <a href="#{cgi_url}manage/bans">Ban list</a> - <a href="#{cgi_url}manage/changepassword">Change password</a> - <a href="#{cgi_url}manage/logout">Log out</a> -
     <?py if administrator: ?>
     <br>

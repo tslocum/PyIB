@@ -44,6 +44,29 @@ def setBoard(dir):
   Settings._.BOARD = board
   
   return board
+
+def addressIsBanned(ip, board):
+  bans = FetchAll("SELECT * FROM `bans` WHERE `ip` = '%s'" % self.environ["REMOTE_ADDR"])
+  for ban in bans:
+    if ban["where"] != "":
+      boards = pickle.loads(ban["where"])
+    if ban["where"] == "" or board in boards:
+      message = "You have been banned from posting on this board.<br>"
+      if ban["reason"] != "":
+        message += "Reason: %s<br>" % ban["reason"]
+      else:
+        message += "No reason was given for this ban.<br>"
+      message += "Your ban was placed <b>%s</b>, and " % formatTimestamp(ban["added"])
+      if ban["until"] != "0":
+        message += "will expire <b>%s</b>.<br>" % formatTimestamp(ban["until"])
+      else:
+        message += "<b>will not expire</b>.<br>"
+      message += "Your IP address is <b>%s</b>." % self.environ["REMOTE_ADDR"]
+          
+      self.error(message)
+      return True
+    
+  return False
   
 def updateBoardSettings():
   """

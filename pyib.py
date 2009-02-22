@@ -18,7 +18,7 @@ from post import *
 from img import *
 
 # Set to True to disable PyIB's exception routing and enable profiling
-_DEBUG = False
+_DEBUG = True
 
 # Set to True to save performance data to pyib.txt
 _LOG = True
@@ -72,11 +72,8 @@ class pyib(object):
     self._cookies.load(self.environ.get("HTTP_COOKIE", ""))
 
   def run(self):
-    UpdateDb("DELETE FROM `bans` WHERE `until` != 0 AND `until` < " + str(timestamp()))
+    UpdateDb("DELETE FROM `bans` WHERE `until` != 0 AND `until` < " + str(timestamp())) # Delete expired bans
     if self.environ["PATH_INFO"] == "/post":
-      if self.addressIsBanned():
-        return
-      
       try:
         if self.formdata["board"]:
           board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '%s' LIMIT 1" % _mysql.escape_string(self.formdata["board"]))
@@ -87,6 +84,9 @@ class pyib(object):
           raise Exception
       except:
         raise Exception, "Invalid board supplied"
+
+      if addressIsBanned(self.environ["REMOTE_ADDR"], board["dir"]):
+        return
       
       post = Post(board["id"])
       post["ip"] = self.environ["REMOTE_ADDR"]
@@ -250,26 +250,6 @@ class pyib(object):
       if not caught:
         # Redirect the user back to the front page
         self.output += '<meta http-equiv="refresh" content="0;url=%s">--&gt; --&gt; --&gt;' % Settings.HOME_URL
-
-  def addressIsBanned(self):
-    ban = FetchOne("SELECT * FROM `bans` WHERE `ip` = '%s' LIMIT 1" % self.environ["REMOTE_ADDR"])
-    if ban:
-      message = "You have been banned from posting on this board.<br>"
-      if ban["reason"] != "":
-        message += "Reason: %s<br>" % ban["reason"]
-      else:
-        message += "No reason was given for this ban.<br>"
-      message += "Your ban was placed <b>%s</b>, and " % formatTimestamp(ban["added"])
-      if ban["until"] != "0":
-        message += "will expire <b>%s</b>.<br>" % formatTimestamp(ban["until"])
-      else:
-        message += "<b>will not expire</b>.<br>"
-      message += "Your IP address is <b>%s</b>." % self.environ["REMOTE_ADDR"]
-        
-      self.error(message)
-      return True
-    
-    return False
         
 if __name__ == "__main__":
   from fcgi import WSGIServer

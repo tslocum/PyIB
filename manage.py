@@ -1,5 +1,6 @@
 import _mysql
 import os
+import cgi
 
 from database import *
 from settings import Settings
@@ -294,26 +295,92 @@ def manage(self, path_split):
             except:
               reason = None
             if reason is not None:
-              ban = FetchOne('SELECT `ip` FROM `bans` WHERE `ip` = \'' + _mysql.escape_string(ip) + '\' LIMIT 1')
+              ban = FetchOne('SELECT `ip` FROM `bans` WHERE `ip` = \'' + _mysql.escape_string(ip) + '\' AND `where` = \'\' AND `until` = 0 LIMIT 1')
               if not ban:
                 if self.formdata['seconds'] != '0':
                   until = str(timestamp() + int(self.formdata['seconds']))
                 else:
                   until = '0'
-                InsertDb("INSERT INTO `bans` (`ip`, `added`, `until`, `staff`, `reason`) VALUES ('" + _mysql.escape_string(ip) + "', " + str(timestamp()) + ", " + until + ", '" + _mysql.escape_string(staff_account['username']) + "', '" + _mysql.escape_string(self.formdata['reason']) + "')")
-                page += 'Ban successfully placed.'
-                action = 'Banned ' + ip
-                if until != '0':
-                  action += ' until ' + formatTimestamp(until)
+                where = ''
+                if 'board_all' not in self.formdata.keys():
+                  where = []
+                  boards = FetchAll('SELECT `dir` FROM `boards`')
+                  for board in boards:
+                    keyname = 'board_' + board['dir']
+                    if keyname in self.formdata.keys():
+                      if self.formdata[keyname] == "1":
+                        where.append(board['dir'])
+                  if len(where) > 0:
+                    where = pickle.dumps(where)
+                  else:
+                    self.error("You must select where the ban shall be placed")
+                    return
+
+                if 'edit' in self.formdata.keys():
+                  UpdateDb("DELETE FROM `bans` WHERE `id` = '" + _mysql.escape_string(self.formdata['edit']) + "' LIMIT 1")
+                  
+                InsertDb("INSERT INTO `bans` (`ip`, `where`, `added`, `until`, `staff`, `reason`, `note`) VALUES ('" + _mysql.escape_string(ip) + "', '" + _mysql.escape_string(where) + "', " + str(timestamp()) + ", " + until + ", '" + _mysql.escape_string(staff_account['username']) + "', '" + _mysql.escape_string(self.formdata['reason']) + "', '" + _mysql.escape_string(self.formdata['note']) + "')")
+
+                if 'edit' in self.formdata.keys():
+                  page += 'Ban successfully edited.'
+                  action = 'Edited ban for ' + ip
                 else:
-                  action += ' permanently'
+                  page += 'Ban successfully placed.'
+                  action = 'Banned ' + ip
+                  if until != '0':
+                    action += ' until ' + formatTimestamp(until)
+                  else:
+                    action += ' permanently'
                 logAction(staff_account['username'], action)
               else:
-                page += 'There is already a ban in place for that IP.'
+                page += 'There is already a global, permanent ban in place for that IP.'
             else:
+              startvalues = {'where': [],
+                             'reason': '',
+                             'note': '',
+                             'seconds': '0'}
+              edit_id = 0
+              if 'edit' in self.formdata.keys():
+                edit_id = self.formdata['edit']
+                ban = FetchOne("SELECT * FROM `bans` WHERE `id` = '" + _mysql.escape_string(edit_id) + "'")
+                if ban:
+                  if ban['where'] == '':
+                    where = ''
+                  else:
+                    where = pickle.loads(ban['where'])
+                  if ban['until'] == '0':
+                    until = 0
+                  else:
+                    until = int(ban['until']) - timestamp()
+                  startvalues = {'where': where,
+                                 'reason': ban['reason'],
+                                 'note': ban['note'],
+                                 'seconds': str(until)}
+                else:
+                  edit_id = 0
+                
               page += '<form action="' + Settings.CGI_URL + 'manage/ban/' + ip + '" name="banform" method="post">' + \
-              '<label for="reason">Reason</label> <input type="text" name="reason"><br>' + \
-              '<label for="seconds">Expire in #Seconds</label> <input type="text" name="seconds" value="0"> <a href="#" onclick="document.banform.seconds.value=\'0\';return false;">no expiration</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'3600\';return false;">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'604800\';return false;">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'1209600\';return false;">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'2592000\';return false;">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'31536000\';return false;">1yr</a><br>' + \
+              '<label>Board(s)</label> <ul>' + \
+              '<li><input type="checkbox" name="board_all" value="1"'
+              if startvalues['where'] == '':
+                page += ' checked'
+              page += '> <b>All boards</b><br><i>or</i></li>'
+              
+              boards = FetchAll('SELECT `name`, `dir` FROM `boards` ORDER BY `dir`')
+              for board in boards:
+                page += '<li><input type="checkbox" name="board_' + board['dir'] + '" value="1"'
+                if board['dir'] in startvalues['where']:
+                  page += ' checked'
+                page += '> ' + board['name'] + '</li>'
+  
+              page += '</ul><br>'
+              
+              if edit_id > 0:
+                page += '<input type="hidden" name="edit" value="' + edit_id + '">'
+                
+              page += '<label for="reason">Reason</label> <input type="text" name="reason" value="' + startvalues['reason'] + '"><br>' + \
+              '<label for="note">Staff note</label> <input type="text" name="note" value="' + startvalues['note'] + '"><br>' + \
+              '<label for="seconds">Expire in #Seconds</label> <input type="text" name="seconds" value="' + startvalues['seconds'] + '"> <a href="#" onclick="document.banform.seconds.value=\'0\';return false;">no expiration</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'3600\';return false;">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'604800\';return false;">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'1209600\';return false;">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'2592000\';return false;">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'31536000\';return false;">1yr</a><br>' + \
               '<label for="submit">&nbsp;</label> <input type="submit" value="Place Ban">' + \
               '</form>'
       elif path_split[2] == 'bans':
@@ -332,14 +399,23 @@ def manage(self, path_split):
         '<label for="submit">&nbsp;</label> <input type="submit" value="Proceed to ban form">' + \
         '</form><br>'
         if bans:
-          page += '<table border="1"><tr><th>IP Address</th><th>Added</th><th>Expires</th><th>Placed by</th><th>Reason</th><th>&nbsp;</th></tr>'
+          page += '<table border="1"><tr><th>IP Address</th><th>Boards</th><th>Added</th><th>Expires</th><th>Placed by</th><th>Reason</th><th>Staff note</th><th>&nbsp;</th></tr>'
           for ban in bans:
-            page += '<tr><td>' + ban['ip'] + '</td><td>' + formatTimestamp(ban['added']) + '</td><td>'
+            page += '<tr><td>' + ban['ip'] + '</td><td>'
+            if ban['where'] == '':
+              page += 'All boards'
+            else:
+              where = pickle.loads(ban['where'])
+              if len(where) > 1:
+                page += '/' + '/, /'.join(where) + '/'
+              else:
+                page += '/' + where[0] + '/'
+            page += '</td><td>' + formatTimestamp(ban['added']) + '</td><td>'
             if ban['until'] == '0':
               page += 'Does not expire'
             else:
               page += formatTimestamp(ban['until'])
-            page += '</td><td>' + ban['staff'] + '</td><td>' + ban['reason'] + '</td><td><a href="' + Settings.CGI_URL + 'manage/bans/delete/' + ban['id'] + '">delete</a></td></tr>'
+            page += '</td><td>' + ban['staff'] + '</td><td>' + ban['reason'] + '</td><td>' + ban['note'] + '</td><td><a href="' + Settings.CGI_URL + 'manage/ban/' + ban['ip'] + '?edit=' + ban['id'] + '">edit</a> <a href="' + Settings.CGI_URL + 'manage/bans/delete/' + ban['id'] + '">delete</a></td></tr>'
           page += '</table>'
       elif path_split[2] == 'changepassword':
         form_submitted = False

@@ -71,3 +71,20 @@ form {
 	float: left;
 	font-size: 28px;
 }
+
+.superadministrator {
+	color: #800080;
+	font-weight: bold;
+}
+
+.administrator {
+	color: #800080;
+}
+
+.moderator {
+	color: #FF0000;
+}
+
+.vip {
+	color: #336600;
+}
