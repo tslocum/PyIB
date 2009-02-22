@@ -1,4 +1,5 @@
 import string
+import cgi
 import re
 
 from settings import Settings
@@ -68,6 +69,12 @@ def nameBlock(post_name, post_tripcode, post_email, post_timestamp_formatted):
     
   return nameblock
 
+def cleanString(string, escape=True):
+  string = string.strip()
+  if escape:
+    string = cgi.escape(string)
+  return string
+
 def clickableURLs(message):
   prog = re.compile(r"\b(http|ftp|https)://\S+(\b|/)|\b[-.\w]+@[-.\w]+")
   i = 0
@@ -111,7 +118,7 @@ def checkQuotes(message):
   
   return message
 
-def checkAllowedHTML(message):
+def onlyAllowedHTML(message):
   """
   Allow <b>, <i>, <u>, <strike>, and <pre> in posts
   """

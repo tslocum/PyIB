@@ -76,7 +76,7 @@ class pyib(object):
     if self.environ["PATH_INFO"] == "/post":
       if self.addressIsBanned():
         return
-        
+      
       try:
         if self.formdata["board"]:
           board = FetchOne("SELECT * FROM `boards` WHERE `dir` = '%s' LIMIT 1" % _mysql.escape_string(self.formdata["board"]))
@@ -87,12 +87,12 @@ class pyib(object):
           raise Exception
       except:
         raise Exception, "Invalid board supplied"
-  
+      
       post = Post(board["id"])
       post["ip"] = self.environ["REMOTE_ADDR"]
       
       try:
-        parent = cgi.escape(self.formdata["parent"]).strip()
+        parent = cleanString(self.formdata["parent"])
         try:
           parent_post = FetchOne("SELECT COUNT(*) FROM `posts` WHERE `id` = %s AND `parentid` = 0 AND `boardid` = %s LIMIT 1" % (parent, board["id"]), 0)
           if int(parent_post[0]) > 0:
@@ -103,13 +103,13 @@ class pyib(object):
           raise Exception, "That parent post ID is invalid."
       except:
         pass
-
+      
       if not checkNotFlooding(post):
         raise Exception, "Flood detected.  Please try again"
-        
+      
       try:
         if not board["settings"]["forced_anonymous"]:
-          post["name"] = cgi.escape(self.formdata["name"]).strip()
+          post["name"] = cleanString(self.formdata["name"])
           setCookie(self, "pyib_name", self.formdata["name"])
       except:
         pass
@@ -122,19 +122,19 @@ class pyib(object):
             post["tripcode"] = tripcode(name_match.group(2))
   
       try:
-        post["email"] = cgi.escape(self.formdata["email"]).strip()
+        post["email"] = cleanString(self.formdata["email"])
       except:
         pass
       
       try:
         if not board["settings"]["disable_subject"] and not post["parentid"]:
-          post["subject"] = cgi.escape(self.formdata["subject"]).strip()
+          post["subject"] = cleanString(self.formdata["subject"])
       except:
         pass
       
       try:
         post["message"] = clickableURLs(cgi.escape(self.formdata["message"]).rstrip()[0:8000])
-        post["message"] = checkAllowedHTML(post["message"])
+        post["message"] = onlyAllowedHTML(post["message"])
         if post["parentid"] != 0:
           post["message"] = checkRefLinks(post["message"], post["parentid"])
         post["message"] = checkQuotes(post["message"])
@@ -167,6 +167,7 @@ class pyib(object):
       post["timestamp"] = post["bumped"] = timestamp(t)
       post["nameblock"] = nameBlock(post["name"], post["tripcode"], post["email"], post["timestamp_formatted"])
 
+      # Insert the post, then run the timThreads function to make sure the board doesn't exceed the page limit
       logTime("Inserting post")
       postid = post.insert()
       logTime("Trimming threads")
@@ -210,6 +211,7 @@ class pyib(object):
                   if post["password"] == self.formdata["password"]:
                     try:
                       if self.formdata["imageonly"]:
+                        # They just want to delete the associated image, not the whole post
                         imageonly = True
                     except:
                       pass
@@ -219,6 +221,7 @@ class pyib(object):
                           deleteFile(post)
                           UpdateDb("UPDATE `posts` SET `file` = '', `file_hex` = '' WHERE `boardid` = %s AND `id` = %s LIMIT 1" % (board["id"], str(delete_id)))
                         else:
+                          # The post has no message, we should delete the entire post
                           deletePost(delete_id)
                     else:
                       deletePost(delete_id)
