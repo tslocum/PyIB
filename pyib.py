@@ -27,6 +27,9 @@ class pyib(object):
   def __init__(self, environ, start_response):
     global _DEBUG
     self.environ = environ
+    if self.environ["PATH_INFO"].startswith("/pyib.py/"):
+      self.environ["PATH_INFO"] = self.environ["PATH_INFO"][8:]
+      
     self.start = start_response
     self.formdata = getFormData(self)
     self.output = ""

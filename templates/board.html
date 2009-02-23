@@ -120,11 +120,11 @@
       <tbody>
       <tr>
       <td class="doubledash">
-        ¨
+        &#0168;
       </td>
       <td class="reply" id="reply#{post['id']}">
       <?py elif post['file'] != '': ?>
-      <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>&ndash;(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})</span>
+      <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>&ndash;(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})  <a href="#" title="Hide thread" onclick="javascript:togglethread('#{post['id']}#{board}');return false;" style="text-decoration: none;">&ndash;</a></span>
       <br>
       <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
         <span id="thumb#{post['id']}"><img src="#{boards_url}#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
@@ -173,7 +173,10 @@
           <?py #endif ?>
       <?py #endif ?>
       <?py if int(post['parentid']) == 0 and not replythread: ?>
-        &nbsp;[<a href="#{boards_url}#{board}/res/#{post['id']}.html">Reply</a>] <a href="#" title="Hide thread" onclick="javascript:togglethread('#{post['id']}#{board}');return false;" style="text-decoration: none;">&ndash;</a>
+        &nbsp;[<a href="#{boards_url}#{board}/res/#{post['id']}.html">Reply</a>]
+          <?py if post['file'] == '': ?>
+           <a href="#" title="Hide thread" onclick="javascript:togglethread('#{post['id']}#{board}');return false;" style="text-decoration: none;">&ndash;</a>
+          <?py #endif ?>
       <?py #endif ?>
       <blockquote>
       #{post['message']}
