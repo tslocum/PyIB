@@ -123,15 +123,21 @@ def escapeHTML(string):
   string = string.replace('>', '&gt;')
   return string
 
+def matchPre(matchobj):
+  return "<pre>" + matchobj.group(1).replace("\n", "") + "</pre>"
+
+def matchAA(matchobj):
+  return "<div class=\"aa\">" + matchobj.group(1).replace("\n", "") + "</div>"
+
 def onlyAllowedHTML(message):
   """
-  Allow <b>, <i>, <u>, <strike>, and <pre> in posts
+  Allow <b>, <i>, <u>, <strike>, and <pre> in posts, along with the special <aa>
   """
-  message = re.compile(r"&lt;b&gt;(.*)&lt;/b&gt;", re.DOTALL | re.IGNORECASE).sub(r"<b>\1</b>", message)
-  message = re.compile(r"&lt;i&gt;(.*)&lt;/i&gt;", re.DOTALL | re.IGNORECASE).sub(r"<i>\1</i>", message)
-  message = re.compile(r"&lt;u&gt;(.*)&lt;/u&gt;", re.DOTALL | re.IGNORECASE).sub(r"<u>\1</u>", message)
-  message = re.compile(r"&lt;strike&gt;(.*)&lt;/strike&gt;", re.DOTALL | re.IGNORECASE).sub(r"<strike>\1</strike>", message)
-  # TODO: Fix double newlines
-  message = re.compile(r"&lt;pre&gt;(.*)&lt;/pre&gt;", re.DOTALL | re.IGNORECASE).sub(r"<pre>\1</pre>", message)
+  message = re.compile(r"&lt;b&gt;(.+?)&lt;/b&gt;", re.DOTALL | re.IGNORECASE).sub(r"<b>\1</b>", message)
+  message = re.compile(r"&lt;i&gt;(.+?)&lt;/i&gt;", re.DOTALL | re.IGNORECASE).sub(r"<i>\1</i>", message)
+  message = re.compile(r"&lt;u&gt;(.+?)&lt;/u&gt;", re.DOTALL | re.IGNORECASE).sub(r"<u>\1</u>", message)
+  message = re.compile(r"&lt;strike&gt;(.+?)&lt;/strike&gt;", re.DOTALL | re.IGNORECASE).sub(r"<strike>\1</strike>", message)
+  message = re.compile(r"&lt;pre&gt;(.+?)&lt;/pre&gt;", re.DOTALL | re.IGNORECASE).sub(matchPre, message)
+  message = re.compile(r"&lt;aa&gt;(.+?)&lt;/aa&gt;", re.DOTALL | re.IGNORECASE).sub(matchAA, message)
   
   return message
