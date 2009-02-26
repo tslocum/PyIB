@@ -138,10 +138,13 @@ class pyib(object):
       try:
         post["message"] = clickableURLs(cgi.escape(self.formdata["message"]).rstrip()[0:8000])
         post["message"] = onlyAllowedHTML(post["message"])
+        if Settings.USE_MARKDOWN:
+          post["message"] = markdown(post["message"])
         if post["parentid"] != 0:
           post["message"] = checkRefLinks(post["message"], post["parentid"])
         post["message"] = checkQuotes(post["message"])
-        post["message"] = post["message"].replace("\n", "<br>")
+        if not Settings.USE_MARKDOWN:
+          post["message"] = post["message"].replace("\n", "<br>")
       except:
         pass
       

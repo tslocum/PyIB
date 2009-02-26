@@ -141,3 +141,10 @@ def onlyAllowedHTML(message):
   message = re.compile(r"&lt;aa&gt;(.+?)&lt;/aa&gt;", re.DOTALL | re.IGNORECASE).sub(matchAA, message)
   
   return message
+
+def markdown(message):
+  import markdown
+  if message.strip() != "":
+    return markdown.markdown(message).rstrip("\n").rstrip("<br>")
+  else:
+    return ""

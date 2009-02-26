@@ -41,6 +41,8 @@ class Settings(object):
   MAX_DIMENSION_FOR_OP_IMAGE = 200
   MAX_DIMENSION_FOR_REPLY_IMAGE = 125
   MAX_DIMENSION_FOR_IMAGE_CATALOG = 50
+
+  USE_MARKDOWN = False
   
   _ = SettingsLocal() # Used when running multiple threads
 
