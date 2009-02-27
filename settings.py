@@ -1,9 +1,11 @@
 import threading
 
 class SettingsLocal(threading.local):
+  USING_SQLALCHEMY = False # If SQLAlchemy is installed, set to True to use it
+
+  # Ignore these
   BOARD = None
   MODBROWSE = False
-  USING_SQLALCHEMY = False
 
 class Settings(object):
   NAME = "not7chan"
@@ -13,7 +15,7 @@ class Settings(object):
   BOARDS_URL = "http://img.n7c.org/"
   CGI_URL = "http://cgi.n7c.org/" # Path to folder containing the script
   MAX_PROGRAM_THREADS = 10 # Maximum threads this Python application can start (must be 2 or greater)
-                           # Setting this too high can cause the program to terminate
+                           # Setting this too high can cause the program to terminate before finishing
   
   BANNER_URL = "http://n7c.org/banners/banner.php"
   BANNER_WIDTH = 300
@@ -23,8 +25,9 @@ class Settings(object):
   DATABASE_USERNAME = ""
   DATABASE_PASSWORD = ""
   DATABASE_DB = ""
-  DATABASE_POOL_SIZE = 5 # Initial number of database connections (SQLAlchemy)
-  DATABASE_POOL_OVERFLOW = 21 # Maximum number of database connections (SQLAlchemy)
+  # The following two entries apply only if USING_SQLALCHEMY is set to True
+  DATABASE_POOL_SIZE = 5 # Initial number of database connections
+  DATABASE_POOL_OVERFLOW = 21 # Maximum number of database connections
 
   MAX_THREADS = 100
   THREADS_SHOWN_ON_FRONT_PAGE = 10

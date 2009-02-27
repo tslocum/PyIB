@@ -21,7 +21,7 @@ from img import *
 _DEBUG = False
 
 # Set to True to save performance data to pyib.txt
-_LOG = True
+_LOG = False
 
 class pyib(object):
   def __init__(self, environ, start_response):
