@@ -3,6 +3,7 @@ import cgi
 import re
 
 from settings import Settings
+from database import *
 
 def tripcode(pw):
   """
@@ -104,9 +105,33 @@ def checkRefLinks(message, parentid):
   Check for >># links in posts and replace with the HTML to make them clickable
   """
   board = Settings._.BOARD
-  
-  # TODO: Make this use a callback and allow reference links to posts in other threads
+
   message = re.compile(r"&gt;&gt;([0-9]+)").sub('<a href="' + Settings.BOARDS_URL + board['dir'] + '/res/' + str(parentid) + r'.html#\1" onclick="javascript:highlight(' + '\'' + r'\1' + '\'' + r', true);">&gt;&gt;\1</a>', message)
+  
+  return message
+
+def matchCrossThreadRefLinks(matchobj):
+  board = Settings._.BOARD
+  postid = matchobj.group(1)
+  parentid = ""
+  try:
+    parentid = FetchOne("SELECT `parentid` FROM `posts` WHERE `id` = '%s' LIMIT 1" % postid)["parentid"]
+  except:
+    pass
+  if parentid == "": # there was a problem
+    return False
+  else:
+    parentid = postid
+
+  return '<a href="' + Settings.BOARDS_URL + board['dir'] + '/res/' + str(parentid) + '.html#' + postid + '">&gt;&gt;&gt;&shy;' + postid + '</a>'
+
+def checkCrossThreadRefLinks(message):
+  """
+  Check for >>># links in posts and replace with the HTML to make them clickable
+  """
+  board = Settings._.BOARD
+  
+  message = re.compile(r"&gt;&gt;&gt;([0-9]+)").sub(matchCrossThreadRefLinks, message)
   
   return message
 

@@ -69,10 +69,20 @@ class pyib(object):
     if self._cookies is not None:
       for cookie in self._cookies.values():
         self.headers.append(("Set-Cookie", cookie.output(header="")))
+
+  def removeCookieHeaders(self):
+    for header, value in self.headers:
+      if header == "Set-Cookie":
+        index = self.headers.index((header, value))
+        del self.headers[index]
     
   def handleCookies(self):
     self._cookies = SimpleCookie()
     self._cookies.load(self.environ.get("HTTP_COOKIE", ""))
+
+  def cookieOutput(self):
+    self.removeCookieHeaders()
+    return self._cookies.js_output().replace('"' + self.formdata.get("name", "") + '"', self.formdata.get("name", "")).replace('"' + self.formdata.get("email", "") + '"', self.formdata.get("email", ""))
 
   def run(self):
     UpdateDb("DELETE FROM `bans` WHERE `until` != 0 AND `until` < " + str(timestamp())) # Delete expired bans
@@ -135,18 +145,16 @@ class pyib(object):
       except:
         pass
       
-      try:
-        post["message"] = clickableURLs(cgi.escape(self.formdata["message"]).rstrip()[0:8000])
-        post["message"] = onlyAllowedHTML(post["message"])
-        if Settings.USE_MARKDOWN:
-          post["message"] = markdown(post["message"])
-        if post["parentid"] != 0:
-          post["message"] = checkRefLinks(post["message"], post["parentid"])
-        post["message"] = checkQuotes(post["message"])
-        if not Settings.USE_MARKDOWN:
-          post["message"] = post["message"].replace("\n", "<br>")
-      except:
-        pass
+      post["message"] = clickableURLs(cgi.escape(self.formdata["message"]).rstrip()[0:8000])
+      post["message"] = onlyAllowedHTML(post["message"])
+      if Settings.USE_MARKDOWN:
+        post["message"] = markdown(post["message"])
+      post["message"] = checkCrossThreadRefLinks(post["message"])
+      if post["parentid"] != 0:
+        post["message"] = checkRefLinks(post["message"], post["parentid"])
+      post["message"] = checkQuotes(post["message"])
+      if not Settings.USE_MARKDOWN:
+        post["message"] = post["message"].replace("\n", "<br>")
       
       try:
         post["password"] = self.formdata["password"]
@@ -168,11 +176,16 @@ class pyib(object):
           raise Exception, "Please upload an image to create a new thread"
         if not post["message"]:
           raise Exception, "Please upload an image, or enter a message"
+
+      noko = False
+      if post["email"].lower() == "noko":
+        noko = True
+        post["email"] = ""
   
       post["timestamp_formatted"] = formatDate(t)
       post["timestamp"] = post["bumped"] = timestamp(t)
       post["nameblock"] = nameBlock(post["name"], post["tripcode"], post["email"], post["timestamp_formatted"])
-
+        
       # Insert the post, then run the timThreads function to make sure the board doesn't exceed the page limit
       logTime("Inserting post")
       postid = post.insert()
@@ -184,12 +197,17 @@ class pyib(object):
         if post["email"].lower() != "sage":
           UpdateDb("UPDATE `posts` SET bumped = %d WHERE `id` = '%s' AND `boardid` = '%s' LIMIT 1" % (timestamp(t), str(post["parentid"]), board["id"]))
           setCookie(self, "pyib_email", self.formdata["email"])
-          
+
+        self.output += self.cookieOutput()
         threadUpdated(post["parentid"])
         self.output += '<meta http-equiv="refresh" content="0;url=%s/res/%s.html">--&gt; --&gt; --&gt;' % (Settings.BOARDS_URL + board["dir"], str(post["parentid"]))
       else:
+        self.output += self.cookieOutput()
         threadUpdated(postid)
-        self.output += '<meta http-equiv="refresh" content="0;url=%s/">--&gt; --&gt; --&gt;' % (Settings.BOARDS_URL + board["dir"])
+        if noko:
+          self.output += '<meta http-equiv="refresh" content="0;url=%s/res/%s.html">--&gt; --&gt; --&gt;' % (Settings.BOARDS_URL + board["dir"], str(postid))
+        else:
+          self.output += '<meta http-equiv="refresh" content="0;url=%s/">--&gt; --&gt; --&gt;' % (Settings.BOARDS_URL + board["dir"])
     else:
       path_split = self.environ["PATH_INFO"].split("/")
       caught = False
