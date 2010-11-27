@@ -1,0 +1,5 @@
+PyIB - Python Image Board
+Created by tslocum <tslocum@gmail.com>
+https://github.com/tslocum/PyIB-Standalone
+
+PyIB stands for Python Image Board. It uses MySQL, WSGI, and Tenjin to accomplish its tasks quickly and efficiently. It also automatically detects Psyco if it is installed on the system, and attaches several crucial functions for even greater speed. Like other modern imageboard software, it requires only one installation to manage multiple boards. Installation is as easy as importing the included SQL file, configuring the settings.py file with paths and database access, and opening up the management panel to add an administrator account.

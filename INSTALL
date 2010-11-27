@@ -1,0 +1,14 @@
+Requirements:
+ Python 2.4+ (Python 2.3 untested)
+ MySQL Python module
+ imagemagick's convert command
+
+Installation:
+ Download and extract the latest release ZIP file in a directory with some method of executing Python as a web application (FastCGI is highly recommended)
+ Ensure the first line of pyib.py is the path to the Python binary you wish to use
+ Edit Settings.py
+ CHMOD pyib.py to allow execution
+ Import the pyib.sql file to the configured database
+ Go to http://your.installation.url.com/pyib.py/manage and log in as user/password admin/admin
+ Add a super administrator account with a strong password
+ Log in as the new account and delete the default account

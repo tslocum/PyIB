@@ -8,18 +8,18 @@ class SettingsLocal(threading.local):
   MODBROWSE = False
 
 class Settings(object):
-  NAME = "not7chan"
-  DOMAIN = ".n7c.org"
-  ROOT_DIR = "/home/tj9991/img.n7c.org/"
-  HOME_URL = "http://n7c.org/"
-  BOARDS_URL = "http://img.n7c.org/"
-  CGI_URL = "http://cgi.n7c.org/" # Path to folder containing the script
+  NAME = "PyIB Installation"
+  DOMAIN = ".yourchan.org"
+  ROOT_DIR = "/home/www/yourchan.org/"
+  HOME_URL = "http://yourchan.org/"
+  BOARDS_URL = "http://yourchan.org/"
+  CGI_URL = "http://yourchan.org/pyib.py/" # Path to pyib.py with trailing slash
   MAX_PROGRAM_THREADS = 10 # Maximum threads this Python application can start (must be 2 or greater)
                            # Setting this too high can cause the program to terminate before finishing
   
-  BANNER_URL = "http://n7c.org/banners/banner.php"
-  BANNER_WIDTH = 300
-  BANNER_HEIGHT = 100
+  BANNER_URL = "data:image/gif;base64,R0lGODlhAQABAJEAAAAAAP///////wAAACH5BAEAAAIALAAAAAABAAEAAAICVAEAOw=="
+  BANNER_WIDTH = 1
+  BANNER_HEIGHT = 1
 
   DATABASE_HOST = "localhost"
   DATABASE_USERNAME = ""
@@ -35,7 +35,7 @@ class Settings(object):
   SECONDS_BETWEEN_NEW_THREADS = 30
   SECONDS_BETWEEN_REPLIES = 10
 
-  SHOW_NAVBAR = False # If you set this to True, edit navbar.html
+  SHOW_NAVBAR = False # If you set this to True, edit navbar.html in the templates directory
   DEFAULT_STYLE = "Futaba" # Futaba or Burichan
   
   IMAGE_SIZE_UNIT = "B" # B or KB

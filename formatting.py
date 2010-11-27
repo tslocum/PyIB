@@ -53,10 +53,11 @@ def nameBlock(post_name, post_tripcode, post_email, post_timestamp_formatted):
         nameblock += '<a href="mailto:' + post_email + '">' + board['settings']['anonymous'] + '</a>'
       else:
         nameblock += board["settings"]["anonymous"]
+      nameblock += "</span>"
     else:
-      nameblock += '<span class="postername">'
       if post_email:
         nameblock += '<a href="mailto:' + post_email + '">'
+      nameblock += '<span class="postername">'
       if post_name:
         nameblock += post_name
       else:
@@ -64,9 +65,10 @@ def nameBlock(post_name, post_tripcode, post_email, post_timestamp_formatted):
           nameblock += board["settings"]["anonymous"]
       if post_tripcode:
         nameblock += '</span><span class="postertrip">' + board['settings']['tripcode_character'] + post_tripcode
+      nameblock += "</span>"
       if post_email:
         nameblock += "</a>"
-    nameblock += "</span> " + post_timestamp_formatted
+    nameblock += " " + post_timestamp_formatted
     
   return nameblock
 
@@ -113,14 +115,11 @@ def checkRefLinks(message, parentid):
 def matchCrossThreadRefLinks(matchobj):
   board = Settings._.BOARD
   postid = matchobj.group(1)
-  parentid = ""
   try:
     parentid = FetchOne("SELECT `parentid` FROM `posts` WHERE `id` = '%s' LIMIT 1" % postid)["parentid"]
   except:
-    pass
-  if parentid == "": # there was a problem
-    return False
-  else:
+    return matchobj.group(0)
+  if parentid == "0":
     parentid = postid
 
   return '<a href="' + Settings.BOARDS_URL + board['dir'] + '/res/' + str(parentid) + '.html#' + postid + '">&gt;&gt;&gt;&shy;' + postid + '</a>'

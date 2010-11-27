@@ -1,0 +1,19 @@
+Current HEAD
+ * Added cross thread reference links (use >>> instead of >>)
+ * Added noko functionality
+
+r66 - February 28, 2009
+ * SQLAlchemy managed database connections when available (courtesy Harry Roberts - harry.roberts@midnight-labs.org)
+ * Settings which change (starting with an underscore) are now kept in a threading.local class to prevent conflicts during multithreaded regeneration (courtesy Harry Roberts - harry.roberts@midnight-labs.org)
+ * Bans can either be global (no posting on all boards) or specific (only specific boards)
+ * More than one ban may be placed on a single IP address at a time (banned from a certain board for one week, and also banned from another board for two weeks)
+ * Staff notes can be attached to bans, viewable only by other staff members
+ * Fix for installations which must be accessed using the format http://cgi.url.com/pyib.py/manage rather than http://cgi.url.com/manage
+ * Support for markdown (optional, must be enabled in settings.py)
+
+r40 - November 8, 2008
+ * Hide thread
+ * Profiling enabled with debug set to True
+
+r29 - October 1, 2008
+ * First public release

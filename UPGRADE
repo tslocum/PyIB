@@ -1,0 +1,3 @@
+Place the patch file of the next release of PyIB after your current version in the root directory of PyIB and issue the following command (assuming you are upgrading from r40 to r66):
+
+patch -p1 <pyib_r40_r66
