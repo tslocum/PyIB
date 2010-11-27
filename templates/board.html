@@ -88,7 +88,7 @@
         </tbody>
       </table>
       </form>
-	  #{postarea_extra_html_bottom}</div>
+    #{postarea_extra_html_bottom}</div>
     <script type="text/javascript"><!--
       set_inputs("postform");
     //--></script>
@@ -106,18 +106,22 @@
     <?py for post in thread['posts']: ?>
       <?py if int(post['parentid']) != 0: ?>
       <table>
-      <tbody>
-      <tr>
-      <td class="doubledash">
-        &#0168;
-      </td>
-      <td class="reply" id="reply#{post['id']}">
+        <tbody>
+          <tr>
+            <td class="doubledash">
+              &#0168;
+            </td>
+            <td class="reply" id="reply#{post['id']}">
       <?py elif post['file'] != '': ?>
-      <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>&ndash;(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})  <a href="#" title="Hide thread" onclick="javascript:togglethread('#{post['id']}#{board}');return false;" style="text-decoration: none;">&ndash;</a></span>
-      <br>
-      <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
+        <span class="filesize">File: <a href="#{boards_url}#{board}/src/#{post['file']}" onclick="javascript:expandimg('#{post['id']}', '#{boards_url}#{board}/src/#{post['file']}', '#{boards_url}#{board}/thumb/#{post['thumb']}', '#{post['image_width']}', '#{post['image_height']}', '#{post['thumb_width']}', '#{post['thumb_height']}');return false;">#{post['file']}</a>&ndash;(#{post['file_size_formatted']}, #{post['image_width']}x#{post['image_height']})
+          <?py if not replythread: ?>
+          <a href="#" title="Hide thread" onclick="javascript:togglethread('#{post['id']}#{board}');return false;" style="text-decoration: none;">&ndash;</a>
+          <?py #endif ?>
+        </span>
+        <br>
+        <a target="_blank" href="#{boards_url}#{board}/src/#{post['file']}">
         <span id="thumb#{post['id']}"><img src="#{boards_url}#{board}/thumb/#{post['thumb']}" alt="#{post['id']}" class="thumb" width="#{post['thumb_width']}" height="#{post['thumb_height']}"></span>
-      </a>
+        </a>
       <?py #endif ?>
       <a name="#{post['id']}"></a>
       <label>
@@ -174,7 +178,7 @@
         <?py if not replythread: ?>
           <?py if int(thread['omitted']) > 0: ?>
             <span class="omittedposts">
-            #{thread['omitted']}
+              #{thread['omitted']}
               <?py if int(thread['omitted']) == 1: ?>
               post
               <?py else: ?>
@@ -185,13 +189,15 @@
           <?py #endif ?>
         <?py #endif ?>
       <?py else: ?>
-      </td>
-      </tr>
-      </tbody>
+            </td>
+          </tr>
+        </tbody>
       </table>
       <?py #endif ?>
     <?py #endfor ?>
-    </div>
+    <?py if not replythread: ?>
+      </div>
+    <?py #endif ?>
     <br clear="left">
     <hr>
   <?py #endfor ?>
