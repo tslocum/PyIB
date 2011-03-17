@@ -160,7 +160,7 @@ def manage(self, path_split):
                       if self.formdata['rights'] in ['0', '1', '2']:
                         action_taken = True
                         if not ':' in self.formdata['username']:
-                          UpdateDb("UPDATE `staff` SET `username` = '" + _mysql.escape_string(self.formdata['username']) + "', `rights` = " + self.formdata['rights'] + " LIMIT 1")
+                          UpdateDb("UPDATE `staff` SET `username` = '" + _mysql.escape_string(self.formdata['username']) + "', `rights` = " + self.formdata['rights'] + " WHERE `id` = " + member['id'] + " LIMIT 1")
                           page += 'Staff member updated.'
                           logAction(staff_account['username'], 'Updated staff account for ' + self.formdata['username'])
                         else:
