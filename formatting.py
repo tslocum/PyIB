@@ -116,7 +116,7 @@ def matchCrossThreadRefLinks(matchobj):
   board = Settings._.BOARD
   postid = matchobj.group(1)
   try:
-    parentid = FetchOne("SELECT `parentid` FROM `posts` WHERE `id` = '%s' LIMIT 1" % postid)["parentid"]
+    parentid = FetchOne("SELECT `parentid` FROM `posts` WHERE `id` = '%s' AND `boardid` = '%s' LIMIT 1" % (postid, board['id']))["parentid"]
   except:
     return matchobj.group(0)
   if parentid == "0":
